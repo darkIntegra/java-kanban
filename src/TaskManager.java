@@ -4,9 +4,9 @@ import java.util.HashMap;
 public class TaskManager {
 
     // 1. Возможность хранить задачи всех типов.
-    HashMap<Integer, Task> tasks = new HashMap<>();
-    HashMap<Integer, Epic> epics = new HashMap<>();
-    HashMap<Integer, Subtask> subtasks = new HashMap<>();
+    protected HashMap<Integer, Task> tasks = new HashMap<>();
+    protected HashMap<Integer, Epic> epics = new HashMap<>();
+    protected HashMap<Integer, Subtask> subtasks = new HashMap<>();
 
     private int id = 0;
 
@@ -30,27 +30,17 @@ public class TaskManager {
 
     // b. Удаление всех задач.
     public void deleteAllTasks() {
-        if (!tasks.isEmpty()) {
-            tasks.clear();
-        } else {
-            System.out.println("Список Tasks пуст");
-        }
+        tasks.clear();
     }
 
     public void deleteAllEpics() {
-        if (!epics.isEmpty()) {
-            subtasks.clear();
-            epics.clear();
-        } else {
-            System.out.println("Список Epics пуст");
-        }
+        subtasks.clear();
     }
 
     public void deleteAllSubtasks() {
-        if (!subtasks.isEmpty()) {
-            subtasks.clear();
-        } else {
-            System.out.println("Список Subtasks пуст");
+        subtasks.clear();
+        for (Epic epic : epics.values()) {
+            epic.clearSubtaskIds();
         }
     }
 
@@ -100,13 +90,16 @@ public class TaskManager {
 
     // e. Обновление.
     public void updateTask(Task task) {
-        tasks.put(task.getId(), task);
+        if (tasks.containsValue(task)) {
+            tasks.put(task.getId(), task);
+        } else {
+            System.out.println("Такой задачи не существует");
+        }
     }
 
     public void updateEpic(Epic epic) {
-        epic.setSubtaskIds(epics.get(epic.getId()).getSubtaskIds());
-        epic.setStatus(epics.get(epic.getId()).getStatus());
-        epics.put(epic.getId(), epic);
+        epic.setName(epic.getName());
+        epic.setDescription(epic.getDescription());
     }
 
     public void updateSubtask(Subtask subtask) {
@@ -114,7 +107,7 @@ public class TaskManager {
         updateStatus(subtask.getEpicId());
     }
 
-    public void updateStatus(int id) {
+    private void updateStatus(int id) {
         int statusNew = 0;
         int statusDone = 0;
         ArrayList<Integer> subtasksList = epics.get(id).getSubtaskIds();
