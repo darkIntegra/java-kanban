@@ -1,3 +1,7 @@
+package Manager;
+
+import Tasks.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -47,21 +51,21 @@ public class TaskManager {
     // c. Получение по идентификатору.
     public Task getTaskById(int id) {
         if (!tasks.containsKey(id)) {
-            System.out.println("Task с " + id + " id не существует");
+            System.out.println("Tasks.Task с " + id + " id не существует");
         }
         return tasks.get(id);
     }
 
     public Epic getEpicById(int id) {
         if (!epics.containsKey(id)) {
-            System.out.println("Epic с " + id + " id не существует");
+            System.out.println("Tasks.Epic с " + id + " id не существует");
         }
         return epics.get(id);
     }
 
     public Subtask getSubtaskById(int id) {
         if (!subtasks.containsKey(id)) {
-            System.out.println("Subtask с " + id + " id не существует");
+            System.out.println("Tasks.Subtask с " + id + " id не существует");
         }
         return subtasks.get(id);
     }
@@ -84,7 +88,7 @@ public class TaskManager {
             subtasks.put(subtask.getId(), subtask);
             updateStatus(subtask.getEpicId());
         } else {
-            System.out.println("Такого Epic не существует");
+            System.out.println("Такого Tasks.Epic не существует");
         }
     }
 
@@ -155,7 +159,7 @@ public class TaskManager {
             subtasks.remove(id);
             updateStatus(epicId);
         } else {
-            System.out.println("Subtask с " + id + " id не существует");
+            System.out.println("Tasks.Subtask с " + id + " id не существует");
         }
     }
 
