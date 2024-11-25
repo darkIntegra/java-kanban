@@ -12,17 +12,15 @@ import java.util.HashMap;
 public class InMemoryTaskManager implements TaskManager {
 
     // 1. Возможность хранить задачи всех типов.
+    HistoryManager history = Managers.getDefaultHistory();
+
     private final HashMap<Integer, Task> tasks = new HashMap<>();
     private final HashMap<Integer, Epic> epics = new HashMap<>();
     private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
 
-    ArrayList<Task> historyList = new ArrayList<>();
+    private final ArrayList<Task> historyList = history.getHistory();
 
     private int id = 0;
-
-    private int generateId() {
-        return ++id;
-    }
 
     // 2. Методы для каждого из типа задач:
     // a. Получение списка всех задач.
@@ -66,7 +64,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Task getTaskById(int id) {
         if (!tasks.containsKey(id)) {
-            System.out.println("Tasks.Task с " + id + " id не существует");
+            System.out.println("Task с " + id + " не существует");
         }
         if (historyList.size() == 10) {
             historyList.removeFirst();
@@ -78,7 +76,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Epic getEpicById(int id) {
         if (!epics.containsKey(id)) {
-            System.out.println("Tasks.Epic с " + id + " id не существует");
+            System.out.println("Epic с " + id + " не существует");
         }
         if (historyList.size() == 10) {
             historyList.removeFirst();
@@ -90,7 +88,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Subtask getSubtaskById(int id) {
         if (!subtasks.containsKey(id)) {
-            System.out.println("Tasks.Subtask с " + id + " id не существует");
+            System.out.println("Subtask с " + id + " не существует");
         }
         if (historyList.size() == 10) {
             historyList.removeFirst();
@@ -151,36 +149,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateEpic(Epic epic) {
-        Epic epicNew = epics.get(epic.getId());
-        epicNew.setName(epic.getName());
-        epicNew.setDescription(epic.getDescription());
-        epics.put(epicNew.getId(), epicNew);
-    }
-
-    private void updateEpicStatus(int id) {
-        //проверяем что список подзадач в эпике пуст
-        if (epics.get(id).getSubtaskIds().isEmpty()) {
-            //если да то в эпик посылаем статус new
-            epics.get(id).setStatus(Status.NEW);
-        } else {
-            int statusNew = 0;
-            int statusDone = 0;
-            ArrayList<Integer> subtasksList = epics.get(id).getSubtaskIds();
-            for (Integer taskId : subtasksList) {
-                if (subtasks.get(taskId).getStatus().equals(Status.DONE)) {
-                    statusDone++;
-                } else if (subtasks.get(taskId).getStatus().equals(Status.NEW)) {
-                    statusNew++;
-                }
-            }
-            if (subtasksList.size() == statusDone || subtasksList.isEmpty()) {
-                epics.get(id).setStatus(Status.DONE);
-            } else if (subtasksList.size() == statusNew) {
-                epics.get(id).setStatus(Status.NEW);
-            } else {
-                epics.get(id).setStatus(Status.IN_PROGRESS);
-            }
-        }
+        epic.setSubtaskIds(epics.get(epic.getId()).getSubtaskIds());
+        epics.put(epic.getId(), epic);
     }
 
     // f. Удаление по идентификатору.
@@ -231,4 +201,33 @@ public class InMemoryTaskManager implements TaskManager {
         return historyList;
     }
 
+    private int generateId() {
+        return ++id;
+    }
+
+    private void updateEpicStatus(int id) {
+        //проверяем что список подзадач в эпике пуст
+        if (epics.get(id).getSubtaskIds().isEmpty()) {
+            //если да то в эпик посылаем статус new
+            epics.get(id).setStatus(Status.NEW);
+        } else {
+            int statusNew = 0;
+            int statusDone = 0;
+            ArrayList<Integer> subtasksList = epics.get(id).getSubtaskIds();
+            for (Integer taskId : subtasksList) {
+                if (subtasks.get(taskId).getStatus().equals(Status.DONE)) {
+                    statusDone++;
+                } else if (subtasks.get(taskId).getStatus().equals(Status.NEW)) {
+                    statusNew++;
+                }
+            }
+            if (subtasksList.size() == statusDone || subtasksList.isEmpty()) {
+                epics.get(id).setStatus(Status.DONE);
+            } else if (subtasksList.size() == statusNew) {
+                epics.get(id).setStatus(Status.NEW);
+            } else {
+                epics.get(id).setStatus(Status.IN_PROGRESS);
+            }
+        }
+    }
 }

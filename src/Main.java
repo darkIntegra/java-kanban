@@ -68,6 +68,6 @@ public class Main {
         history.add(epic1);
         history.add(subtask23);
 
-        history.getHistory();
+        System.out.println(history.getHistory());
     }
 }

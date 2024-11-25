@@ -1,33 +1,18 @@
 package tasks;
 
-import org.junit.jupiter.api.BeforeEach;
+import manager.InMemoryTaskManager;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class EpicTest {
-
-    @BeforeEach
-    void setUp() {
-    }
+    InMemoryTaskManager manager = new InMemoryTaskManager();
+    Epic epicBase = new Epic("эпик 1", "содержание 1");
 
     @Test
-    void getSubtaskIds() {
-    }
-
-    @Test
-    void setSubtaskIds() {
-    }
-
-    @Test
-    void deleteSubtaskIds() {
-    }
-
-    @Test
-    void clearSubtaskIds() {
-    }
-
-    @Test
-    void addSubtaskId() {
+    void testCreateEpic() {
+        manager.createEpic(epicBase);
+        Epic epicFromMap = manager.getEpicById(epicBase.getId());
+        Assertions.assertNotNull(epicFromMap, "Задача не найдена.");
+        Assertions.assertEquals(epicBase, epicFromMap, "Задачи не совпадают.");
     }
 }
