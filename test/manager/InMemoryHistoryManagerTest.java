@@ -9,8 +9,6 @@ import tasks.Task;
 
 class InMemoryHistoryManagerTest {
 
-    static TaskManager manager = Managers.getDefault();
-
     static Task task1 = new Task("таска 1", "содержание 1");
     static Epic epic1 = new Epic("эпик 1", "содержание 1");
     static Subtask subtask1 = new Subtask("сабтаск1.1", "содержание 1");
@@ -19,6 +17,7 @@ class InMemoryHistoryManagerTest {
 
     @BeforeAll
     static void created() {
+        TaskManager manager = Managers.getDefault();
         manager.createTask(task1);
         manager.createEpic(epic1);
         manager.createSubtask(subtask1, epic1.getId());

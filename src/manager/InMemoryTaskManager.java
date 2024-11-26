@@ -12,13 +12,11 @@ import java.util.HashMap;
 public class InMemoryTaskManager implements TaskManager {
 
     // 1. Возможность хранить задачи всех типов.
-    HistoryManager history = Managers.getDefaultHistory();
+    private final HistoryManager history = Managers.getDefaultHistory();
 
     private final HashMap<Integer, Task> tasks = new HashMap<>();
     private final HashMap<Integer, Epic> epics = new HashMap<>();
     private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
-
-    private final ArrayList<Task> historyList = history.getHistory();
 
     private int id = 0;
 
@@ -63,38 +61,23 @@ public class InMemoryTaskManager implements TaskManager {
     // c. Получение по идентификатору.
     @Override
     public Task getTaskById(int id) {
-        if (!tasks.containsKey(id)) {
-            System.out.println("Task с " + id + " не существует");
-        }
-        if (historyList.size() == 10) {
-            historyList.removeFirst();
-        }
-        historyList.add(tasks.get(id));
-        return tasks.get(id);
+        Task task = tasks.get(id);
+        history.add(task);
+        return task;
     }
 
     @Override
     public Epic getEpicById(int id) {
-        if (!epics.containsKey(id)) {
-            System.out.println("Epic с " + id + " не существует");
-        }
-        if (historyList.size() == 10) {
-            historyList.removeFirst();
-        }
-        historyList.add(epics.get(id));
-        return epics.get(id);
+        Epic epic = epics.get(id);
+        history.add(epic);
+        return epic;
     }
 
     @Override
     public Subtask getSubtaskById(int id) {
-        if (!subtasks.containsKey(id)) {
-            System.out.println("Subtask с " + id + " не существует");
-        }
-        if (historyList.size() == 10) {
-            historyList.removeFirst();
-        }
-        historyList.add(subtasks.get(id));
-        return subtasks.get(id);
+        Subtask subtask = subtasks.get(id);
+        history.add(subtask);
+        return subtask;
     }
 
     // d. Создание.
@@ -198,7 +181,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     public ArrayList<Task> getHistory() {
-        return historyList;
+        return history.getHistory();
     }
 
     private int generateId() {

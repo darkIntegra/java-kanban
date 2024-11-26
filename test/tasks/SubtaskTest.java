@@ -1,20 +1,14 @@
 package tasks;
 
-import manager.InMemoryTaskManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class SubtaskTest {
-    InMemoryTaskManager manager = new InMemoryTaskManager();
-    static Epic epic1 = new Epic("эпик 1", "содержание 1");
-    static Subtask subtaskBase = new Subtask("сабтаск1.1", "содержание 1");
-
     @Test
-    void testCreateSubtask() {
-        manager.createEpic(epic1);
-        manager.createSubtask(subtaskBase, epic1.getId());
-        Subtask subtaskFromMap = manager.getSubtaskById(subtaskBase.getId());
-        Assertions.assertNotNull(subtaskFromMap, "Задача не найдена.");
-        Assertions.assertEquals(subtaskBase, subtaskFromMap, "Задачи не совпадают.");
+    void subtaskEqualFieldShouldBeEquals() {
+        Epic epic1 = new Epic(1, "эпик 1", "содержание 1");
+        Subtask subtask1 = new Subtask(2, "сабтаск 1", "содержание 1", Status.NEW, epic1.getId());
+        Subtask subtask2 = new Subtask(2, "сабтаск 1", "содержание 1", Status.NEW, epic1.getId());
+        Assertions.assertEquals(subtask1, subtask2, "Задачи не совпадают.");
     }
 }
