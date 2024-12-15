@@ -159,7 +159,8 @@ class InMemoryTaskManagerTest {
         int id = subtask1.getId();
         manager.deleteSubtask(id);
         Collection<Subtask> subtasksList = manager.getSubtasks();
-        Assertions.assertEquals(0, subtasksList.size(), "Субтаск не удален.");
+        Assertions.assertEquals(0, subtasksList.size(), "Субтаск не удален."); //по 6 спринту ок
+        Assertions.assertNotNull(epic1.getSubtaskIds(), "В Эпике список id не удален");
     }
 
     @Test
