@@ -11,7 +11,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     private Node first;
     private Node last;
 
-    static class Node {
+    private static class Node {
         Node previous;
         Node next;
         Task values;
@@ -19,55 +19,79 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public void add(Task task) {
-        if (last == null && first == null) {
-            Node node = new Node();
-            node.values = task;
-            first = node;
-            last = node;
-            historyHashMap.put(task.getId(), node);
-        } else if (!historyHashMap.containsKey(task.getId())) {
-            Node node = new Node();
-            node.values = task;
-            node.previous = last;
-            historyHashMap.get(last.values.getId()).next = node;
-            last = node;
-            historyHashMap.put(task.getId(), node);
-        } else if (historyHashMap.get(task.getId()) != last) {
-            if (historyHashMap.get(task.getId()).previous != null) {
-                historyHashMap.get(task.getId()).previous.next = historyHashMap.get(task.getId()).next;
-            } else {
-                first = historyHashMap.get(task.getId()).next;
-            }
-            historyHashMap.get(task.getId()).next.previous = historyHashMap.get(task.getId()).previous;
-            historyHashMap.get(last.values.getId()).next = historyHashMap.get(task.getId());
-            historyHashMap.get(task.getId()).previous = last;
-            last = historyHashMap.get(task.getId());
-            historyHashMap.get(task.getId()).next = null;
+        if (task == null) {
+            System.out.println("Таск не может быть null");
+            return;
         }
+
+        // Проверяю наличие задачи в истории
+        Node existingNode = historyHashMap.get(task.getId());
+        if (existingNode != null) {
+            System.out.println("Таск с ID " + task.getId() + " уже существует. Удаляем старую запись.");
+            removeNode(existingNode);
+        }
+
+        // Создаю новую ноду
+        Node newNode = new Node();
+        newNode.values = task;
+
+        // Добавляю новую ноду в список
+        if (first == null) { // Если список пустой
+            first = newNode;
+            last = newNode;
+        } else { // Если список не пустой
+            newNode.previous = last;
+            last.next = newNode;
+            last = newNode;
+        }
+        historyHashMap.put(task.getId(), newNode);
+    }
+
+    private void removeNode(Node node) {
+        if (node.previous != null) {  // Удаление ссылки на текущую ноду из связанного списка
+            node.previous.next = node.next;
+        } else { // Если у узла нет предыдущей ноды значит он первый
+            first = node.next;
+        }
+        if (node.next != null) {
+            node.next.previous = node.previous;
+        } else {
+            last = node.previous;
+        }
+        historyHashMap.remove(node.values.getId());
     }
 
     @Override
     public void remove(int id) {
-        if (historyHashMap.containsKey(id)) {
-            if (!historyHashMap.get(id).equals(first)) {
-                historyHashMap.get(id).previous.next = historyHashMap.get(id).next;
-            } else {
-                first = historyHashMap.get(id).next;
-            }
-            if (!historyHashMap.get(id).equals(last)) {
-                historyHashMap.get(id).next.previous = historyHashMap.get(id).previous;
-            } else {
-                last = historyHashMap.get(id).previous;
-            }
-            historyHashMap.remove(id);
+        Node nodeToRemove = historyHashMap.get(id); //один раз достаю из мапы
+        if (nodeToRemove == null) {
+            return;
         }
+        if (nodeToRemove == first && nodeToRemove == last) { //прорабатываю крайние случаи отдельно
+            first = null;
+            last = null;
+        } else if (nodeToRemove == first) {
+            first = nodeToRemove.next;
+            if (first != null) {
+                first.previous = null;
+            }
+        } else if (nodeToRemove == last) {
+            last = nodeToRemove.previous;
+            if (last != null) {
+                last.next = null;
+            }
+        } else {
+            nodeToRemove.previous.next = nodeToRemove.next;
+            nodeToRemove.next.previous = nodeToRemove.previous;
+        }
+        historyHashMap.remove(id);
     }
 
     @Override
     public ArrayList<Task> getHistory() {
         ArrayList<Task> historyList = new ArrayList<>();
         Node currentNode = first;
-        for (int i = 0; i < historyHashMap.size(); i++) {
+        while (currentNode != null) {
             historyList.add(currentNode.values);
             currentNode = currentNode.next;
         }
