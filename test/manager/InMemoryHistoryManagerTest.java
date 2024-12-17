@@ -7,6 +7,7 @@ import tasks.Subtask;
 import tasks.Task;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -116,11 +117,9 @@ class InMemoryHistoryManagerTest {
         history.add(subtask1);
         history.add(epic1);
 
-        history.remove(2); // Удаляем задачу из середины
+        history.remove(3); // Удаляем задачу из середины (долго ломал себе голову почему надо 3 поставить, а не 2)
 
         ArrayList<Task> historyList = history.getHistory();
-        assertEquals(2, historyList.size());
-        assertEquals(task1, historyList.get(0));
-        assertEquals(epic1, historyList.get(1));
+        assertEquals(List.of(task1, epic1), historyList);
     }
 }

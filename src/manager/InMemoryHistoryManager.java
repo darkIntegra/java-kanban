@@ -27,8 +27,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         // Проверяю наличие задачи в истории
         Node existingNode = historyHashMap.get(task.getId());
         if (existingNode != null) {
-            System.out.println("Таск с ID " + task.getId() + " уже существует. Удаляем старую запись.");
-            removeNode(existingNode);
+            remove(existingNode.values.getId());
         }
 
         // Создаю новую ноду
@@ -38,28 +37,14 @@ public class InMemoryHistoryManager implements HistoryManager {
         // Добавляю новую ноду в список
         if (first == null) { // Если список пустой
             first = newNode;
-            last = newNode;
         } else { // Если список не пустой
             newNode.previous = last;
             last.next = newNode;
-            last = newNode;
         }
+        last = newNode;
         historyHashMap.put(task.getId(), newNode);
     }
-
-    private void removeNode(Node node) {
-        if (node.previous != null) {  // Удаление ссылки на текущую ноду из связанного списка
-            node.previous.next = node.next;
-        } else { // Если у узла нет предыдущей ноды значит он первый
-            first = node.next;
-        }
-        if (node.next != null) {
-            node.next.previous = node.previous;
-        } else {
-            last = node.previous;
-        }
-        historyHashMap.remove(node.values.getId());
-    }
+//метод removeNode(удалено) выделил отдельно для удобства читабельности. Оказалось что remove его прекрасно заменяет
 
     @Override
     public void remove(int id) {
