@@ -12,17 +12,13 @@ import java.util.HashMap;
 public class InMemoryTaskManager implements TaskManager {
 
     // 1. Возможность хранить задачи всех типов.
+    private final HistoryManager history = Managers.getDefaultHistory();
+
     private final HashMap<Integer, Task> tasks = new HashMap<>();
     private final HashMap<Integer, Epic> epics = new HashMap<>();
     private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
 
-    ArrayList<Task> historyList = new ArrayList<>();
-
     private int id = 0;
-
-    private int generateId() {
-        return ++id;
-    }
 
     // 2. Методы для каждого из типа задач:
     // a. Получение списка всех задач.
@@ -45,16 +41,28 @@ public class InMemoryTaskManager implements TaskManager {
     // b. Удаление всех задач.
     @Override
     public void deleteAllTasks() {
+        for (Integer id1 : tasks.keySet()) {
+            history.remove(id1);
+        }
         tasks.clear();
     }
 
     @Override
     public void deleteAllSubtasks() {
+        for (Integer id1 : subtasks.keySet()) {
+            history.remove(id1);
+        }
         subtasks.clear();
     }
 
     @Override
     public void deleteAllEpics() {
+        for (Integer id1 : subtasks.keySet()) {
+            history.remove(id1);
+        }
+        for (Integer id1 : epics.keySet()) {
+            history.remove(id1);
+        }
         subtasks.clear();
         for (Epic epic : epics.values()) {
             epic.clearSubtaskIds();
@@ -65,38 +73,23 @@ public class InMemoryTaskManager implements TaskManager {
     // c. Получение по идентификатору.
     @Override
     public Task getTaskById(int id) {
-        if (!tasks.containsKey(id)) {
-            System.out.println("Tasks.Task с " + id + " id не существует");
-        }
-        if (historyList.size() == 10) {
-            historyList.removeFirst();
-        }
-        historyList.add(tasks.get(id));
-        return tasks.get(id);
+        Task task = tasks.get(id);
+        history.add(task);
+        return task;
     }
 
     @Override
     public Epic getEpicById(int id) {
-        if (!epics.containsKey(id)) {
-            System.out.println("Tasks.Epic с " + id + " id не существует");
-        }
-        if (historyList.size() == 10) {
-            historyList.removeFirst();
-        }
-        historyList.add(epics.get(id));
-        return epics.get(id);
+        Epic epic = epics.get(id);
+        history.add(epic);
+        return epic;
     }
 
     @Override
     public Subtask getSubtaskById(int id) {
-        if (!subtasks.containsKey(id)) {
-            System.out.println("Tasks.Subtask с " + id + " id не существует");
-        }
-        if (historyList.size() == 10) {
-            historyList.removeFirst();
-        }
-        historyList.add(subtasks.get(id));
-        return subtasks.get(id);
+        Subtask subtask = subtasks.get(id);
+        history.add(subtask);
+        return subtask;
     }
 
     // d. Создание.
@@ -151,10 +144,64 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateEpic(Epic epic) {
-        Epic epicNew = epics.get(epic.getId());
-        epicNew.setName(epic.getName());
-        epicNew.setDescription(epic.getDescription());
-        epics.put(epicNew.getId(), epicNew);
+        epic.setSubtaskIds(epics.get(epic.getId()).getSubtaskIds());
+        epics.put(epic.getId(), epic);
+    }
+
+    // f. Удаление по идентификатору.
+    @Override
+    public void deleteTask(int id) {
+        if (tasks.containsKey(id)) {
+            tasks.remove(id);
+            history.remove(id);
+        } else {
+            System.out.println("Задачи с " + id + " id не существует");
+        }
+    }
+
+    @Override
+    public void deleteEpic(int id) {
+        if (epics.containsKey(id)) {
+            ArrayList<Integer> subTaskIds = epics.get(id).getSubtaskIds();
+            for (Integer subtaskId : subTaskIds) {
+                subtasks.remove(subtaskId);
+                history.remove(subtaskId);
+            }
+            epics.remove(id);
+            history.remove(id);
+        } else {
+            System.out.println("Эпика с " + id + " id не существует");
+        }
+    }
+
+    @Override
+    public void deleteSubtask(int id) {
+        int epicId = subtasks.get(id).getEpicId();
+        epics.get(subtasks.get(id).getEpicId()).deleteSubtaskIds(id);
+        subtasks.remove(id);
+        history.remove(id);
+        updateEpicStatus(epicId);
+    }
+
+    @Override
+    public ArrayList<Subtask> getSubtasksByEpicId(int id) {
+        ArrayList<Subtask> subtasksList = new ArrayList<>();
+        //как получить id подзадачи? все подзадачи находятся в мапе subtasks(int, subTask) но мы не знаем ни key ни value
+        Epic epic = epics.get(id);
+        ArrayList<Integer> subtaskIds = epic.getSubtaskIds();
+        //перебираем список id подзадач, добавляя в конечный список данные из Мап с подзадачами по id
+        for (Integer subtaskId : subtaskIds) {
+            subtasksList.add(subtasks.get(subtaskId));
+        }
+        return subtasksList;
+    }
+
+    public ArrayList<Task> getHistory() {
+        return history.getHistory();
+    }
+
+    private int generateId() {
+        return ++id;
     }
 
     private void updateEpicStatus(int id) {
@@ -182,53 +229,4 @@ public class InMemoryTaskManager implements TaskManager {
             }
         }
     }
-
-    // f. Удаление по идентификатору.
-    @Override
-    public void deleteTask(int id) {
-        if (tasks.containsKey(id)) {
-            tasks.remove(id);
-        } else {
-            System.out.println("Задачи с " + id + " id не существует");
-        }
-    }
-
-    @Override
-    public void deleteEpic(int id) {
-        if (epics.containsKey(id)) {
-            ArrayList<Integer> subTaskIds = epics.get(id).getSubtaskIds();
-            for (Integer subtaskId : subTaskIds) {
-                subtasks.remove(subtaskId);
-            }
-            epics.remove(id);
-        } else {
-            System.out.println("Эпика с " + id + " id не существует");
-        }
-    }
-
-    @Override
-    public void deleteSubtask(int id) {
-        int epicId = subtasks.get(id).getEpicId();
-        epics.get(subtasks.get(id).getEpicId()).deleteSubtaskIds(id);
-        subtasks.remove(id);
-        updateEpicStatus(epicId);
-    }
-
-    @Override
-    public ArrayList<Subtask> getSubtasksByEpicId(int id) {
-        ArrayList<Subtask> subtasksList = new ArrayList<>();
-        //как получить id подзадачи? все подзадачи находятся в мапе subtasks(int, subTask) но мы не знаем ни key ни value
-        Epic epic = epics.get(id);
-        ArrayList<Integer> subtaskIds = epic.getSubtaskIds();
-        //перебираем список id подзадач, добавляя в конечный список данные из Мап с подзадачами по id
-        for (Integer subtaskId : subtaskIds) {
-            subtasksList.add(subtasks.get(subtaskId));
-        }
-        return subtasksList;
-    }
-
-    public ArrayList<Task> getHistory() {
-        return historyList;
-    }
-
 }
