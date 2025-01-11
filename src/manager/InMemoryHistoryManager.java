@@ -20,14 +20,14 @@ public class InMemoryHistoryManager implements HistoryManager {
     @Override
     public void add(Task task) {
         if (task == null) {
-            System.out.println("Таск не может быть null");
+            // System.out.println("Таск не может быть null"); удалил, чтобы логи в тестах были чисты
             return;
         }
 
         // Проверяю наличие задачи в истории
         Node existingNode = historyHashMap.get(task.getId());
         if (existingNode != null) {
-            remove(existingNode.values.getId());
+            remove(task.getId());
         }
 
         // Создаю новую ноду

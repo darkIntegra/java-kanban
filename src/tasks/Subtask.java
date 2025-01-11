@@ -39,4 +39,8 @@ public class Subtask extends Task {
         return Objects.hash(super.hashCode(), epicId);
     }
 
+    @Override
+    public Type getType() {
+        return Type.SUBTASK;
+    }
 }
