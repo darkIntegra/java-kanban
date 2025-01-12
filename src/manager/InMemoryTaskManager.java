@@ -66,9 +66,6 @@ public class InMemoryTaskManager implements TaskManager {
         for (Integer epicId : epics.keySet()) {
             history.remove(epicId);
         }
-        for (Epic epic : epics.values()) {
-            epic.clearSubtaskIds();
-        }
         subtasks.clear();
         epics.clear();
     }
@@ -79,8 +76,6 @@ public class InMemoryTaskManager implements TaskManager {
         Task task = tasks.get(id);
         if (task != null) {
             history.add(task);
-        } else {
-            //System.out.println("Задачи с ID " + id + " не существует"); убрал чтобы на тестах лишнего не выводило
         }
         return task;
     }
@@ -90,8 +85,6 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epics.get(id);
         if (epic != null) {
             history.add(epic);
-        } else {
-            //System.out.println("Эпика с ID " + id + " не существует"); убрал чтобы на тестах лишнего не выводило
         }
         return epic;
     }
@@ -101,8 +94,6 @@ public class InMemoryTaskManager implements TaskManager {
         Subtask subtask = subtasks.get(id);
         if (subtask != null) {
             history.add(subtask);
-        } else {
-            //System.out.println("Сабтаска с ID " + id + " не существует"); убрал чтобы на тестах лишнего не выводило
         }
         return subtask;
     }
@@ -232,7 +223,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     private void updateEpicStatus(int id) {
         Epic epic = epics.get(id);
-        if (epic == null || epic.getSubtaskIds().isEmpty()) {
+        if (epic.getSubtaskIds().isEmpty()) {
             epic.setStatus(Status.NEW);
         } else {
             int statusNew = 0;

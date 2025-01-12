@@ -7,8 +7,8 @@ import tasks.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collection;
+
+import utility.TaskConverter;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final File tasksFile;
@@ -17,23 +17,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public FileBackedTaskManager(File tasksFile) {
         super(Managers.getDefaultHistory());
         this.tasksFile = tasksFile;
-    }
-
-    //подготовка для записи в файл
-    private String taskToString(Task task) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.join(
-                ",",
-                String.valueOf(task.getId()),
-                task.getType().name(),
-                task.getName(),
-                task.getStatus().toString(),
-                task.getDescription()
-        ));
-        if (task.getType() == Type.SUBTASK) {
-            sb.append(",").append(((Subtask) task).getEpicId());
-        }
-        return sb.toString();
     }
 
     //запись данных в файл
@@ -45,13 +28,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             try (Writer fileWriter = new FileWriter(tasksFile, StandardCharsets.UTF_8)) {
                 fileWriter.write("id,type,name,status,description,epic\n");
                 for (Task task : getTasks()) {
-                    fileWriter.write(taskToString(task) + "\n");
+                    fileWriter.write(TaskConverter.taskToString(task) + "\n");
                 }
                 for (Epic epic : getEpics()) {
-                    fileWriter.write(taskToString(epic) + "\n");
+                    fileWriter.write(TaskConverter.taskToString(epic) + "\n");
                 }
                 for (Subtask subtask : getSubtasks()) {
-                    fileWriter.write(taskToString(subtask) + "\n");
+                    fileWriter.write(TaskConverter.taskToString(subtask) + "\n");
                 }
             }
         } catch (IOException e) {
@@ -59,32 +42,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    //подготовка к считыванию из файла
-    private Task taskFromString(String str) {
-        Task task = null;
-        String[] taskFields = str.split(",");
-        Status status = switch (taskFields[3]) {
-            case "Новое" -> Status.NEW;
-            case "Выполняется" -> Status.IN_PROGRESS;
-            case "Выполнено" -> Status.DONE;
-            default -> throw new IllegalStateException("Неожиданное значение статуса " + taskFields[3]);
-        };
-        Type type = Type.valueOf(taskFields[1]);
-        if (type == Type.TASK) {
-            task = new Task(Integer.parseInt(taskFields[0]), taskFields[2], taskFields[4], status);
-        } else if (type == Type.SUBTASK) {
-            task = new Subtask(Integer.parseInt(taskFields[0]), taskFields[2], taskFields[4], status,
-                    Integer.parseInt(taskFields[5]));
-        } else if (type == Type.EPIC) {
-            task = new Epic(Integer.parseInt(taskFields[0]), taskFields[2], taskFields[4]);
-        }
-        return task;
-    }
-
     //считывание данных из файла
     private void taskAddFromFile(Task task) {
         int currentId = task.getId();
-        if (super.id < currentId) {
+        if (id < currentId) {
             id = currentId;
         }
         if (task.getType() == Type.EPIC) {
@@ -113,28 +74,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             br.readLine();
             String line;
             while ((line = br.readLine()) != null && !line.isEmpty()) {
-                Task task = backedTaskManager.taskFromString(line);
+                Task task = TaskConverter.taskFromString(line);
                 backedTaskManager.taskAddFromFile(task);
             }
         } catch (IOException e) {
             throw new ManagerLoadException("Ошибка чтения");
         }
         return backedTaskManager;
-    }
-
-    @Override
-    public Collection<Task> getTasks() {
-        return super.getTasks();
-    }
-
-    @Override
-    public Collection<Epic> getEpics() {
-        return super.getEpics();
-    }
-
-    @Override
-    public Collection<Subtask> getSubtasks() {
-        return super.getSubtasks();
     }
 
     @Override
@@ -153,21 +99,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public void deleteAllEpics() {
         super.deleteAllEpics();
         save();
-    }
-
-    @Override
-    public Task getTaskById(int id) {
-        return super.getTaskById(id);
-    }
-
-    @Override
-    public Epic getEpicById(int id) {
-        return super.getEpicById(id);
-    }
-
-    @Override
-    public Subtask getSubtaskById(int id) {
-        return super.getSubtaskById(id);
     }
 
     @Override
@@ -222,15 +153,5 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public void deleteSubtask(int id) {
         super.deleteSubtask(id);
         save();
-    }
-
-    @Override
-    public ArrayList<Subtask> getSubtasksByEpicId(int id) {
-        return super.getSubtasksByEpicId(id);
-    }
-
-    @Override
-    public ArrayList<Task> getHistory() {
-        return super.getHistory();
     }
 }

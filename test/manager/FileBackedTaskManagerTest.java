@@ -63,12 +63,16 @@ class FileBackedTaskManagerTest {
         Task task = new Task("Имя Таск1", "Описание задачи Таск1");
         fileBackedTaskManager.createTask(task);
 
-        Task updatedTask = new Task(task.getId(), "Обновленное имя", "Обновленное описание", Status.IN_PROGRESS);
+        Task updatedTask = new Task(task.getId(), "Обновленное имя", "Обновленное описание",
+                Status.IN_PROGRESS);
         fileBackedTaskManager.updateTask(updatedTask);
 
-        assertEquals(updatedTask.getName(), fileBackedTaskManager.getTaskById(task.getId()).getName(), "Название задачи не обновилось");
-        assertEquals(updatedTask.getDescription(), fileBackedTaskManager.getTaskById(task.getId()).getDescription(), "Описание задачи не обновилось");
-        assertEquals(updatedTask.getStatus(), fileBackedTaskManager.getTaskById(task.getId()).getStatus(), "Статус задачи не обновился");
+        assertEquals(updatedTask.getName(), fileBackedTaskManager.getTaskById(task.getId()).getName(),
+                "Название задачи не обновилось");
+        assertEquals(updatedTask.getDescription(), fileBackedTaskManager.getTaskById(task.getId()).getDescription(),
+                "Описание задачи не обновилось");
+        assertEquals(updatedTask.getStatus(), fileBackedTaskManager.getTaskById(task.getId()).getStatus(),
+                "Статус задачи не обновился");
     }
 
     @Test
@@ -79,8 +83,10 @@ class FileBackedTaskManagerTest {
         Epic updatedEpic = new Epic(epic.getId(), "Обновленное имя", "Обновленное описание");
         fileBackedTaskManager.updateEpic(updatedEpic);
 
-        assertEquals(updatedEpic.getName(), fileBackedTaskManager.getEpicById(epic.getId()).getName(), "Название эпика не обновилось");
-        assertEquals(updatedEpic.getDescription(), fileBackedTaskManager.getEpicById(epic.getId()).getDescription(), "Описание эпика не обновилось");
+        assertEquals(updatedEpic.getName(), fileBackedTaskManager.getEpicById(epic.getId()).getName(),
+                "Название эпика не обновилось");
+        assertEquals(updatedEpic.getDescription(), fileBackedTaskManager.getEpicById(epic.getId()).getDescription(),
+                "Описание эпика не обновилось");
     }
 
     @Test
@@ -125,9 +131,6 @@ class FileBackedTaskManagerTest {
         fileBackedTaskManager.createEpic(epic1);
         fileBackedTaskManager.createSubtask(subtask1, epic1.getId());
 
-        // Сохраняем в файл
-        fileBackedTaskManager.save();
-
         // Загружаем из файла
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
@@ -136,8 +139,11 @@ class FileBackedTaskManagerTest {
         assertNotNull(loadedManager.getEpicById(epic1.getId()), "Эпик не найден после загрузки");
         assertNotNull(loadedManager.getSubtaskById(subtask1.getId()), "Сабтаск не найден после загрузки");
 
-        assertEquals(task1.getName(), loadedManager.getTaskById(task1.getId()).getName(), "Название задачи не совпадает");
-        assertEquals(epic1.getName(), loadedManager.getEpicById(epic1.getId()).getName(), "Название эпика не совпадает");
-        assertEquals(subtask1.getName(), loadedManager.getSubtaskById(subtask1.getId()).getName(), "Название сабтаска не совпадает");
+        assertEquals(task1.getName(), loadedManager.getTaskById(task1.getId()).getName(),
+                "Название задачи не совпадает");
+        assertEquals(epic1.getName(), loadedManager.getEpicById(epic1.getId()).getName(),
+                "Название эпика не совпадает");
+        assertEquals(subtask1.getName(), loadedManager.getSubtaskById(subtask1.getId()).getName(),
+                "Название сабтаска не совпадает");
     }
 }

@@ -20,7 +20,6 @@ public class InMemoryHistoryManager implements HistoryManager {
     @Override
     public void add(Task task) {
         if (task == null) {
-            // System.out.println("Таск не может быть null"); удалил, чтобы логи в тестах были чисты
             return;
         }
 
