@@ -3,7 +3,7 @@ package tasks;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class Epic extends Task{
+public class Epic extends Task {
     private ArrayList<Integer> subtaskIds = new ArrayList<>();
 
     //Основной конструктор
@@ -11,12 +11,12 @@ public class Epic extends Task{
         super(name, description);
     }
 
-    //Конуструктор для обновления эпика
+    //Конструктор для обновления эпика
     public Epic(int id, String name, String description) {
         super(id, name, description);
     }
 
-    //Гетеры и сетеры
+    //Гетеры и сеттеры
     public ArrayList<Integer> getSubtaskIds() {
         return subtaskIds;
     }
@@ -50,5 +50,10 @@ public class Epic extends Task{
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), subtaskIds);
+    }
+
+    @Override
+    public Type getType() {
+        return Type.EPIC;
     }
 }

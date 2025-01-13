@@ -21,6 +21,7 @@ public class Task {
         this.description = description;
         this.status = status;
     }
+
     //конструктор для обновления данных Epic
     public Task(int id, String name, String description) {
         this.id = id;
@@ -82,6 +83,10 @@ public class Task {
                 ", description='" + description + '\'' +
                 ", status=" + status +
                 '}';
+    }
+
+    public Type getType() {
+        return Type.TASK;
     }
 
 }
