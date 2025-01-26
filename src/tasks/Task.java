@@ -1,5 +1,7 @@
 package tasks;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Task {
@@ -7,6 +9,8 @@ public class Task {
     private String name;
     private String description;
     private Status status = Status.NEW;
+    private Duration duration = Duration.ZERO;
+    private LocalDateTime startTime;
 
     //основной конструктор
     public Task(String name, String description) {
@@ -27,6 +31,31 @@ public class Task {
         this.id = id;
         this.name = name;
         this.description = description;
+    }
+
+    //пока не понимаю какие именно нужны конструкторы, но пусть будет для 8 спринта
+    public Task(String name, String description, LocalDateTime startTime, Duration duration) {
+        this.name = name;
+        this.description = description;
+        this.startTime = startTime;
+        this.duration = duration;
+    }
+
+    public Task(int id, String name, String description, Status status, LocalDateTime startTime, Duration duration) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.status = status;
+        this.startTime = startTime;
+        this.duration = duration;
+    }
+
+    public Task(int id, String name, String description, LocalDateTime startTime, Duration duration) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.startTime = startTime;
+        this.duration = duration;
     }
 
     //Гетеры и сетеры
@@ -62,6 +91,26 @@ public class Task {
         this.status = status;
     }
 
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public LocalDateTime getEndTime() {
+        return (startTime == null || duration == null) ? null : startTime.plus(duration);
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -78,10 +127,14 @@ public class Task {
     @Override
     public String toString() {
         return "Task{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", status=" + status +
+                "name= '" + getName() + '\'' +
+                ", description= '" + getDescription() + '\'' +
+                ", id= " + getId() +
+                ", status= " + getStatus() +
+                ", startTime= " + (getStartTime() == null ? "не установлено" : getStartTime()) +
+                ", duration= " + (getDuration() == null ? "не установлена" : getDuration().toHours() + " часов " +
+                getDuration().toMinutesPart() + " минут") +
+                ", endTime= " + (getEndTime() == null ? "не установлено" : getEndTime()) +
                 '}';
     }
 

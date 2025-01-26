@@ -1,5 +1,7 @@
 package tasks;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Subtask extends Task {
@@ -17,6 +19,17 @@ public class Subtask extends Task {
         this.epicId = epicId;
     }
 
+    //пока не понимаю какие именно нужны конструкторы, но пусть будет для 8 спринта
+    public Subtask(String name, String description, LocalDateTime startTime, Duration duration) {
+        super(name, description, startTime, duration);
+    }
+
+    public Subtask(int id, String name, String description, Status status, int epicId, LocalDateTime startTime,
+                   Duration duration) {
+        super(id, name, description, status, startTime, duration);
+        this.epicId = epicId;
+    }
+
     public int getEpicId() {
         return epicId;
     }
@@ -25,7 +38,7 @@ public class Subtask extends Task {
         this.epicId = epicId;
     }
 
-
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
