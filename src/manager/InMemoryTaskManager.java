@@ -104,6 +104,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void createEpic(Epic epic) {
         epic.setId(generateId());
         epics.put(epic.getId(), epic);
+        epic.calculateFields();
     }
 
     @Override
@@ -114,6 +115,7 @@ public class InMemoryTaskManager implements TaskManager {
             subtask.setEpicId(id);
             subtasks.put(subtask.getId(), subtask);
             epic.addSubtaskId(subtask.getId());
+            epic.calculateFields();
             updateEpicStatus(id);
         } else {
             System.out.println("Эпик с ID " + id + " не существует");
@@ -182,6 +184,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (subtask != null) {
             int epicId = subtask.getEpicId();
             epics.get(epicId).deleteSubtaskIds(id);
+            getEpicById(epicId).calculateFields();
             subtasks.remove(id);
             historyManager.remove(id);
             updateEpicStatus(epicId);
