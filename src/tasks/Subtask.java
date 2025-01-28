@@ -20,8 +20,8 @@ public class Subtask extends Task {
     }
 
     //пока не понимаю какие именно нужны конструкторы, но пусть будет для 8 спринта
-    public Subtask(String name, String description, LocalDateTime startTime, Duration duration) {
-        super(name, description, startTime, duration);
+    public Subtask(String name, String description, Status status, LocalDateTime startTime, Duration duration) {
+        super(name, description, status, startTime, duration);
     }
 
     public Subtask(int id, String name, String description, Status status, int epicId, LocalDateTime startTime,

@@ -49,7 +49,7 @@ public class TaskConverter {
                 ((Epic) task).setSubtaskIds(new ArrayList<>());
                 break;
             case SUBTASK:
-                int epicId = Integer.parseInt(taskFields[5]);
+                int epicId = Integer.parseInt(taskFields[7]);
                 task = new Subtask(id, name, description, status, epicId, startTime,
                         Duration.ofMinutes(durationInMinutes));
                 break;

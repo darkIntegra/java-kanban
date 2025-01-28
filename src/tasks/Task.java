@@ -34,9 +34,10 @@ public class Task {
     }
 
     //пока не понимаю какие именно нужны конструкторы, но пусть будет для 8 спринта
-    public Task(String name, String description, LocalDateTime startTime, Duration duration) {
+    public Task(String name, String description, Status status, LocalDateTime startTime, Duration duration) {
         this.name = name;
         this.description = description;
+        this.status = status;
         this.startTime = startTime;
         this.duration = duration;
     }
@@ -109,6 +110,18 @@ public class Task {
 
     public void setDuration(Duration duration) {
         this.duration = duration;
+    }
+
+    public boolean isOverlapping(Task other) {
+        LocalDateTime thisStart = getStartTime();
+        LocalDateTime thisEnd = getEndTime();
+        LocalDateTime otherStart = other.getStartTime();
+        LocalDateTime otherEnd = other.getEndTime();
+
+        if (thisStart == null || thisEnd == null || otherStart == null || otherEnd == null) {
+            return false;
+        }
+        return !thisStart.isAfter(otherEnd) && !otherStart.isAfter(thisEnd);
     }
 
     @Override

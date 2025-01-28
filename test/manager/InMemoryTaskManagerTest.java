@@ -3,7 +3,6 @@ package manager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tasks.Epic;
-import tasks.Status;
 import tasks.Subtask;
 import tasks.Task;
 
@@ -13,102 +12,16 @@ import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class InMemoryTaskManagerTest {
+class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
-    private InMemoryTaskManager taskManager;
+    @Override
+    protected InMemoryTaskManager createInstance() {
+        return new InMemoryTaskManager();
+    }
 
     @BeforeEach
     void setUp() {
-        taskManager = new InMemoryTaskManager(Managers.getDefaultHistory());
-    }
-
-    @Test
-    void testCreateTask() {
-        Task task = new Task("Имя Таск1", "Описание задачи Таск1");
-        taskManager.createTask(task);
-
-        assertNotNull(taskManager.getTaskById(task.getId()), "Задача не была создана");
-    }
-
-    @Test
-    void testCreateEpic() {
-        Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
-        taskManager.createEpic(epic);
-
-        assertNotNull(taskManager.getEpicById(epic.getId()), "Эпик не был создан");
-    }
-
-    @Test
-    void testCreateSubtask() {
-        Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
-        taskManager.createEpic(epic);
-
-        Subtask subtask = new Subtask("Имя Сабтаск1", "Описание задачи Сабтаск1");
-        taskManager.createSubtask(subtask, epic.getId());
-
-        assertNotNull(taskManager.getSubtaskById(subtask.getId()), "Сабтаск не был создан");
-        assertTrue(epic.getSubtaskIds().contains(subtask.getId()), "Сабтаск не добавлен в эпик");
-    }
-
-    @Test
-    void testUpdateTask() {
-        Task task = new Task("Имя Таск1", "Описание задачи Таск1");
-        taskManager.createTask(task);
-
-        Task updatedTask = new Task(task.getId(), "Обновленное имя", "Обновленное описание",
-                Status.IN_PROGRESS);
-        taskManager.updateTask(updatedTask);
-
-        assertEquals(updatedTask.getName(), taskManager.getTaskById(task.getId()).getName(),
-                "Название задачи не обновилось");
-        assertEquals(updatedTask.getDescription(), taskManager.getTaskById(task.getId()).getDescription(),
-                "Описание задачи не обновилось");
-        assertEquals(updatedTask.getStatus(), taskManager.getTaskById(task.getId()).getStatus(),
-                "Статус задачи не обновился");
-    }
-
-    @Test
-    void testUpdateEpic() {
-        Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
-        taskManager.createEpic(epic);
-
-        Epic updatedEpic = new Epic(epic.getId(), "Обновленное имя", "Обновленное описание");
-        taskManager.updateEpic(updatedEpic);
-
-        assertEquals(updatedEpic.getName(), taskManager.getEpicById(epic.getId()).getName(),
-                "Название эпика не обновилось");
-        assertEquals(updatedEpic.getDescription(), taskManager.getEpicById(epic.getId()).getDescription(),
-                "Описание эпика не обновилось");
-    }
-
-    @Test
-    void testDeleteTask() {
-        Task task = new Task("Имя Таск1", "Описание задачи Таск1");
-        taskManager.createTask(task);
-
-        taskManager.deleteTask(task.getId());
-        assertNull(taskManager.getTaskById(task.getId()), "Задача не была удалена");
-    }
-
-    @Test
-    void testDeleteEpic() {
-        Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
-        taskManager.createEpic(epic);
-
-        taskManager.deleteEpic(epic.getId());
-        assertNull(taskManager.getEpicById(epic.getId()), "Эпик не был удален");
-    }
-
-    @Test
-    void testDeleteSubtask() {
-        Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
-        taskManager.createEpic(epic);
-
-        Subtask subtask = new Subtask("Имя Сабтаск1", "Описание задачи Сабтаск1");
-        taskManager.createSubtask(subtask, epic.getId());
-
-        taskManager.deleteSubtask(subtask.getId());
-        assertNull(taskManager.getSubtaskById(subtask.getId()), "Сабтаск не был удален");
+        taskManager = new InMemoryTaskManager();
     }
 
     @Test
@@ -184,7 +97,7 @@ class InMemoryTaskManagerTest {
         taskManager.getTaskById(task1.getId());
         taskManager.getTaskById(task2.getId());
 
-        ArrayList<Task> history = (ArrayList<Task>) taskManager.getHistory();
+        ArrayList<Task> history = taskManager.getHistory();
         assertEquals(2, history.size(), "Количество задач в истории не совпадает");
         assertEquals(task1, history.get(0), "Первая задача в истории не совпадает");
         assertEquals(task2, history.get(1), "Вторая задача в истории не совпадает");

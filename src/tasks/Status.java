@@ -5,9 +5,9 @@ public enum Status {
     IN_PROGRESS("Выполняется"),
     DONE("Выполнено");
 
-    private final String name;
+    final String name;
 
-    private Status(String name) {
+    Status(String name) {
         this.name = name;
     }
 
