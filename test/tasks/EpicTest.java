@@ -85,7 +85,7 @@ public class EpicTest {
         Subtask subtask1 = new Subtask("Subtask 1", "Description 1", Status.NEW,
                 LocalDateTime.now(), Duration.ofMinutes(30));
         Subtask subtask2 = new Subtask("Subtask 2", "Description 2", Status.IN_PROGRESS,
-                LocalDateTime.now().plusHours(1), Duration.ofMinutes(60));
+                LocalDateTime.now().plusHours(1), Duration.ofMinutes(59));
         Subtask subtask3 = new Subtask("Subtask 3", "Description 3", Status.DONE,
                 LocalDateTime.now().plusHours(2), Duration.ofMinutes(90));
 
@@ -93,7 +93,7 @@ public class EpicTest {
         taskManager.createSubtask(subtask2, epic.getId());
         taskManager.createSubtask(subtask3, epic.getId());
 
-        taskManager.updateEpic(epic);
+        taskManager.updateEpicStatus(epic.getId());
 
         assertEquals(Status.IN_PROGRESS, epic.getStatus());
     }

@@ -19,11 +19,12 @@ public class Subtask extends Task {
         this.epicId = epicId;
     }
 
-    //пока не понимаю какие именно нужны конструкторы, но пусть будет для 8 спринта
+    //конструктор для тестирования параметров времени
     public Subtask(String name, String description, Status status, LocalDateTime startTime, Duration duration) {
         super(name, description, status, startTime, duration);
     }
 
+    //конструктор для taskConverter
     public Subtask(int id, String name, String description, Status status, int epicId, LocalDateTime startTime,
                    Duration duration) {
         super(id, name, description, status, startTime, duration);

@@ -64,9 +64,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     //загрузка данных из файла
     public static FileBackedTaskManager loadFromFile(File file) {
-        if (!file.exists()) {
-            throw new ManagerLoadException("Файл для загрузки отсутствует");
-        }
         FileBackedTaskManager backedTaskManager = new FileBackedTaskManager(file);
         try (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
             br.readLine();

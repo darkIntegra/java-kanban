@@ -8,40 +8,11 @@ public class Task {
     private int id;
     private String name;
     private String description;
-    private Status status = Status.NEW;
-    private Duration duration = Duration.ZERO;
-    private LocalDateTime startTime;
+    private Status status;
+    protected Duration duration;
+    protected LocalDateTime startTime;
 
     //основной конструктор
-    public Task(String name, String description) {
-        this.name = name;
-        this.description = description;
-    }
-
-    //конструктор для обновления данных Task
-    public Task(int id, String name, String description, Status status) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.status = status;
-    }
-
-    //конструктор для обновления данных Epic
-    public Task(int id, String name, String description) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-    }
-
-    //пока не понимаю какие именно нужны конструкторы, но пусть будет для 8 спринта
-    public Task(String name, String description, Status status, LocalDateTime startTime, Duration duration) {
-        this.name = name;
-        this.description = description;
-        this.status = status;
-        this.startTime = startTime;
-        this.duration = duration;
-    }
-
     public Task(int id, String name, String description, Status status, LocalDateTime startTime, Duration duration) {
         this.id = id;
         this.name = name;
@@ -51,12 +22,24 @@ public class Task {
         this.duration = duration;
     }
 
-    public Task(int id, String name, String description, LocalDateTime startTime, Duration duration) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.startTime = startTime;
-        this.duration = duration;
+    //конструктор для создания Task
+    public Task(String name, String description) {
+        this(0, name, description, Status.NEW, LocalDateTime.now(), Duration.ZERO);
+    }
+
+    //конструктор для обновления данных Task
+    public Task(int id, String name, String description, Status status) {
+        this(id, name, description, status, LocalDateTime.now(), Duration.ZERO);
+    }
+
+    //конструктор для обновления данных Epic
+    public Task(int id, String name, String description) {
+        this(id, name, description, Status.NEW, LocalDateTime.now(), Duration.ZERO);
+    }
+
+    //конструктор для тестирования параметров времени
+    public Task(String name, String description, Status status, LocalDateTime startTime, Duration duration) {
+        this(0, name, description, status, startTime, duration);
     }
 
     //Гетеры и сетеры
@@ -110,18 +93,6 @@ public class Task {
 
     public void setDuration(Duration duration) {
         this.duration = duration;
-    }
-
-    public boolean isOverlapping(Task other) {
-        LocalDateTime thisStart = getStartTime();
-        LocalDateTime thisEnd = getEndTime();
-        LocalDateTime otherStart = other.getStartTime();
-        LocalDateTime otherEnd = other.getEndTime();
-
-        if (thisStart == null || thisEnd == null || otherStart == null || otherEnd == null) {
-            return false;
-        }
-        return !thisStart.isAfter(otherEnd) && !otherStart.isAfter(thisEnd);
     }
 
     @Override
