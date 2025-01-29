@@ -129,12 +129,15 @@ public class InMemoryTaskManager implements TaskManager {
     public void updateTask(Task task) {
         if (tasks.containsKey(task.getId())) {
             Task oldTask = tasks.get(task.getId());
-            if (isOverlappingWithAny(task, oldTask)) {
-                throw new IllegalArgumentException("Обновленная задача пересекается по времени с другой задачей.");
-            }
             tasks.put(task.getId(), task);
-            updatePrioritizedTasks(oldTask);
-            updatePrioritizedTasks(task);
+            if (task.hasTimeChanged(oldTask)) {
+                if (isOverlappingWithAny(task, oldTask)) {
+                    throw new IllegalArgumentException("Нельзя обновить задачу - пересекается по времени " +
+                            "с другой задачей.");
+                }
+                prioritizedTasks.remove(oldTask);
+                updatePrioritizedTasks(task);
+            }
         } else {
             System.out.println("Задачи с ID " + task.getId() + " не существует");
         }
@@ -144,13 +147,16 @@ public class InMemoryTaskManager implements TaskManager {
     public void updateSubtask(Subtask subtask) {
         if (subtasks.containsKey(subtask.getId())) {
             Subtask oldSubtask = subtasks.get(subtask.getId());
-            if (isOverlappingWithAny(subtask, oldSubtask)) {
-                throw new IllegalArgumentException("Обновленная подзадача пересекается по времени с другой задачей.");
-            }
             subtasks.put(subtask.getId(), subtask);
-            updatePrioritizedTasks(oldSubtask);
-            updatePrioritizedTasks(subtask);
             updateEpicStatus(subtask.getEpicId());
+            if (subtask.hasTimeChanged(oldSubtask)) {
+                if (isOverlappingWithAny(subtask, oldSubtask)) {
+                    throw new IllegalArgumentException("Нельзя обновить подзадачу - пересекается по времени " +
+                            "с другой задачей.");
+                }
+                prioritizedTasks.remove(oldSubtask);
+                updatePrioritizedTasks(subtask);
+            }
         } else {
             System.out.println("Сабтаска с ID " + subtask.getId() + " не существует");
         }
@@ -161,6 +167,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (epics.containsKey(epic.getId())) {
             epic.setSubtaskIds(epics.get(epic.getId()).getSubtaskIds());
             epics.put(epic.getId(), epic);
+            calculateFields(epic);
         } else {
             System.out.println("Эпика с ID " + epic.getId() + " не существует");
         }
@@ -320,13 +327,7 @@ public class InMemoryTaskManager implements TaskManager {
         return ++id;
     }
 
-    private boolean isOverlapping(LocalDateTime start1, LocalDateTime end1, LocalDateTime start2, LocalDateTime end2) {
-        if (start1 == null || end1 == null || start2 == null || end2 == null) {
-            return false;
-        }
-        return !start1.isAfter(end2) && !start2.isAfter(end1);
-    }
-
+    // Метод для проверки пересечений через обход всех отсортированных задач
     private boolean isOverlappingWithAny(Task newTask) {
         LocalDateTime newStart = newTask.getStartTime();
         LocalDateTime newEnd = newTask.getEndTime();
@@ -358,8 +359,17 @@ public class InMemoryTaskManager implements TaskManager {
                 ));
     }
 
+    private boolean isOverlapping(LocalDateTime start1, LocalDateTime end1, LocalDateTime start2, LocalDateTime end2) {
+        if (start1 == null || end1 == null || start2 == null || end2 == null) {
+            return false;
+        }
+        return !start1.isAfter(end2) && !start2.isAfter(end1);
+    }
+
     private void updatePrioritizedTasks(Task task) {
-        if (task.getStartTime() == null) {
+        LocalDateTime startTime = task.getStartTime();
+        LocalDateTime endTime = task.getEndTime();
+        if (startTime == null || endTime == null) {
             prioritizedTasks.remove(task);
         } else {
             prioritizedTasks.remove(task);

@@ -24,17 +24,17 @@ public class Task {
 
     //конструктор для создания Task
     public Task(String name, String description) {
-        this(0, name, description, Status.NEW, LocalDateTime.now(), Duration.ZERO);
+        this(0, name, description, Status.NEW, null, Duration.ZERO);
     }
 
     //конструктор для обновления данных Task
     public Task(int id, String name, String description, Status status) {
-        this(id, name, description, status, LocalDateTime.now(), Duration.ZERO);
+        this(id, name, description, status, null, Duration.ZERO);
     }
 
     //конструктор для обновления данных Epic
     public Task(int id, String name, String description) {
-        this(id, name, description, Status.NEW, LocalDateTime.now(), Duration.ZERO);
+        this(id, name, description, Status.NEW, null, Duration.ZERO);
     }
 
     //конструктор для тестирования параметров времени
@@ -93,6 +93,23 @@ public class Task {
 
     public void setDuration(Duration duration) {
         this.duration = duration;
+    }
+
+    // Метод для проверки изменения времени задачи
+    public boolean hasTimeChanged(Task otherTask) {
+        // Проверяем изменение startTime
+        boolean startTimeChanged = !equalsNullable(startTime, otherTask.getStartTime());
+
+        // Проверяем изменение duration
+        boolean durationChanged = !equalsNullable(duration, otherTask.getDuration());
+
+        // Если startTime изменилось или duration изменилась, то время задачи изменилось
+        return startTimeChanged || durationChanged;
+    }
+
+    // Вспомогательный метод для безопасного сравнения nullable объектов
+    protected static <T> boolean equalsNullable(T a, T b) {
+        return (a == null && b == null) || (a != null && a.equals(b));
     }
 
     @Override
