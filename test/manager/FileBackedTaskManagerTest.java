@@ -11,6 +11,8 @@ import tasks.Task;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -60,5 +62,56 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
                 "Название эпика не совпадает");
         assertEquals(subtask1.getName(), loadedManager.getSubtaskById(subtask1.getId()).getName(),
                 "Название сабтаска не совпадает");
+    }
+
+    @Test
+    void testTaskAddFromFile_AddsTaskToPrioritizedTasks() throws IOException {
+        // Создаем задачу и сохраняем её в файл через метод save()
+        Task task = new Task("Task 1", "Description 1");
+        task.setStartTime(LocalDateTime.of(2023, 10, 1, 9, 0));
+        task.setDuration(Duration.ofHours(2));
+
+        FileBackedTaskManager manager = new FileBackedTaskManager(tempFile);
+        manager.createTask(task);
+        manager.save();
+
+        // Загружаем задачу из файла
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
+
+        // Assert: Проверяем, что задача добавлена в prioritizedTasks
+        assertTrue(loadedManager.getPrioritizedTasks().contains(task));
+    }
+
+    @Test
+    void testLoadFromFile_LoadsTasksFromValidFile() throws IOException {
+        // Записываем задачи в файл через метод save()
+        Task task = new Task("Task 1", "Description 1");
+        task.setStartTime(LocalDateTime.of(2023, 10, 1, 9, 0));
+        task.setDuration(Duration.ofHours(2));
+
+        Epic epic = new Epic("Epic 1", "Epic Description");
+
+        FileBackedTaskManager manager = new FileBackedTaskManager(tempFile);
+        manager.createTask(task);
+        manager.createEpic(epic);
+        manager.save();
+
+        // Загружаем задачи из файла
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
+
+        // Проверяем, что задачи загружены корректно
+        assertEquals(1, loadedManager.getTasks().size());
+        assertEquals(1, loadedManager.getEpics().size());
+    }
+
+    @Test
+    void testLoadFromFile_HandlesEmptyFile() throws IOException {
+        // Создаем пустой файл
+        try (var writer = new java.io.FileWriter(tempFile)) {
+            writer.write("");
+        }
+
+        // Проверяем, что загрузка из пустого файла не вызывает ошибок
+        assertDoesNotThrow(() -> FileBackedTaskManager.loadFromFile(tempFile));
     }
 }

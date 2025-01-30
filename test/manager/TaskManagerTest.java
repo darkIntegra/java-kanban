@@ -10,6 +10,7 @@ import tasks.Task;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -128,7 +129,8 @@ abstract class TaskManagerTest<T extends TaskManager> {
         String expectedMessage = "Задача пересекается по времени с другой задачей.";
         String actualMessage = exception.getMessage();
 
-        assertTrue(actualMessage.contains(expectedMessage), "Не удалось обнаружить пересечение временных интервалов");
+        assertTrue(actualMessage.contains(expectedMessage), "Не удалось обнаружить пересечение временных " +
+                "интервалов");
 
         // Теперь создадим задачу без пересечения и проверим, что она добавляется корректно
         LocalDateTime startTime3 = endTime1.plusHours(1);
@@ -140,5 +142,115 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         taskManager.createTask(task3);
         assertNotNull(taskManager.getTaskById(task3.getId()), "Задача не была создана");
+    }
+
+    @Test
+    void testHistory() {
+        Task task = new Task("Task", "Description");
+        taskManager.createTask(task);
+        taskManager.getTaskById(task.getId());
+        assertEquals(1, taskManager.getHistory().size(), "История должна содержать одну задачу");
+        taskManager.getTaskById(task.getId());
+        assertEquals(1, taskManager.getHistory().size(), "Повторное обращение не должно " +
+                "дублировать задачу");
+    }
+
+    @Test
+    void testGetPrioritizedTasks() {
+        LocalDateTime startTime1 = LocalDateTime.now();
+        LocalDateTime endTime1 = startTime1.plusHours(2);
+        Task task1 = new Task("Task 1", "Description 1");
+        task1.setStartTime(startTime1);
+        task1.setDuration(Duration.between(startTime1, endTime1));
+
+        LocalDateTime startTime2 = endTime1.plusHours(1);
+        LocalDateTime endTime2 = startTime2.plusHours(2);
+        Task task2 = new Task("Task 2", "Description 2");
+        task2.setStartTime(startTime2);
+        task2.setDuration(Duration.between(startTime2, endTime2));
+
+        taskManager.createTask(task1);
+        taskManager.createTask(task2);
+
+        List<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
+        assertEquals(2, prioritizedTasks.size(), "Должно быть две задачи в списке приоритетов");
+        assertEquals(task1, prioritizedTasks.get(0), "Задача 1 должна быть первой в списке");
+        assertEquals(task2, prioritizedTasks.get(1), "Задача 2 должна быть второй в списке");
+    }
+
+    @Test
+    void testEpicStatusCalculation() {
+        Epic epic = new Epic("Epic", "Description");
+        taskManager.createEpic(epic);
+
+        Subtask subtask1 = new Subtask("Subtask 1", "Description 1");
+        subtask1.setStatus(Status.NEW);
+        taskManager.createSubtask(subtask1, epic.getId());
+
+        Subtask subtask2 = new Subtask("Subtask 2", "Description 2");
+        subtask2.setStatus(Status.IN_PROGRESS);
+        taskManager.createSubtask(subtask2, epic.getId());
+
+        assertEquals(Status.IN_PROGRESS, taskManager.getEpicById(epic.getId()).getStatus(),
+                "Статус эпика должен быть IN_PROGRESS, если хотя бы одна подзадача в процессе");
+
+        subtask1.setStatus(Status.DONE);
+        subtask2.setStatus(Status.DONE);
+        taskManager.updateSubtask(subtask1);
+        taskManager.updateSubtask(subtask2);
+
+        assertEquals(Status.DONE, taskManager.getEpicById(epic.getId()).getStatus(),
+                "Статус эпика должен быть DONE, если все подзадачи завершены");
+    }
+
+    @Test
+    void testEpicTimeCalculation() {
+        Epic epic = new Epic("Epic", "Description");
+        taskManager.createEpic(epic);
+
+        LocalDateTime startTime1 = LocalDateTime.now();
+        LocalDateTime endTime1 = startTime1.plusHours(2);
+        Subtask subtask1 = new Subtask("Subtask 1", "Description 1");
+        subtask1.setStartTime(startTime1);
+        subtask1.setDuration(Duration.between(startTime1, endTime1));
+        taskManager.createSubtask(subtask1, epic.getId());
+
+        LocalDateTime startTime2 = endTime1.plusHours(1);
+        LocalDateTime endTime2 = startTime2.plusHours(2);
+        Subtask subtask2 = new Subtask("Subtask 2", "Description 2");
+        subtask2.setStartTime(startTime2);
+        subtask2.setDuration(Duration.between(startTime2, endTime2));
+        taskManager.createSubtask(subtask2, epic.getId());
+
+        Epic updatedEpic = taskManager.getEpicById(epic.getId());
+
+        assertEquals(startTime1, updatedEpic.getStartTime(), "Начало эпика должно совпадать с началом " +
+                "первой подзадачи");
+        assertEquals(endTime2, updatedEpic.getEndTime(), "Конец эпика должен совпадать с концом " +
+                "последней подзадачи");
+        Duration expectedDuration = subtask1.getDuration().plus(subtask2.getDuration());
+        assertEquals(expectedDuration, updatedEpic.getDuration(),
+                "Продолжительность эпика должна быть суммой продолжительностей подзадач");
+    }
+
+    @Test
+    void testCreateTaskWithoutTime() {
+        Task task = new Task("Task", "Description");
+        taskManager.createTask(task);
+        assertNotNull(taskManager.getTaskById(task.getId()), "Задача без времени должна быть создана");
+    }
+
+    @Test
+    void testUpdateTaskWithoutTimeChange() {
+        Task task = new Task("Task", "Description");
+        taskManager.createTask(task);
+
+        Task updatedTask = new Task(task.getId(), "Updated Name", "Updated Description",
+                Status.IN_PROGRESS);
+        taskManager.updateTask(updatedTask);
+
+        Task fetchedTask = taskManager.getTaskById(task.getId());
+        assertEquals(updatedTask.getName(), fetchedTask.getName(), "Название задачи должно обновиться");
+        assertNull(fetchedTask.getStartTime(), "Время задачи не должно измениться, если оно не было задано");
     }
 }

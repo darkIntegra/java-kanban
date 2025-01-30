@@ -6,6 +6,7 @@ import tasks.Task;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public interface TaskManager {
     // 2. Методы для каждого из типа задач:
@@ -55,4 +56,7 @@ public interface TaskManager {
     ArrayList<Subtask> getSubtasksByEpicId(int id);
 
     ArrayList<Task> getHistory();
+
+    // Получение списка задач отсортированных по времени
+    List<Task> getPrioritizedTasks();
 }

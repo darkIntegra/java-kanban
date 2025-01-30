@@ -9,11 +9,17 @@ public class Task {
     private String name;
     private String description;
     private Status status;
-    protected Duration duration;
-    protected LocalDateTime startTime;
+    private Duration duration;
+    private LocalDateTime startTime;
 
     //основной конструктор
     public Task(int id, String name, String description, Status status, LocalDateTime startTime, Duration duration) {
+        if (name == null || description == null || status == null) {
+            throw new IllegalArgumentException("Поля name, description и status не могут быть null");
+        }
+        if (startTime != null && duration == null) {
+            throw new IllegalArgumentException("Если startTime задан, duration также должен быть задан");
+        }
         this.id = id;
         this.name = name;
         this.description = description;

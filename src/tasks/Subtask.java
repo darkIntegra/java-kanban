@@ -5,12 +5,12 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Subtask extends Task {
-
     private int epicId;
 
     //Основной конструктор
     public Subtask(String name, String description) {
         super(name, description);
+        this.epicId = 0; //потенциально, неинициализированное поле может привести к проблемам
     }
 
     //Конструктор для обновления данных Subtask
@@ -22,6 +22,7 @@ public class Subtask extends Task {
     //конструктор для тестирования параметров времени
     public Subtask(String name, String description, Status status, LocalDateTime startTime, Duration duration) {
         super(name, description, status, startTime, duration);
+        this.epicId = 0;
     }
 
     //конструктор для taskConverter

@@ -1,25 +1,24 @@
 package tasks;
 
-import java.time.Duration;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class Epic extends Task {
-    private ArrayList<Integer> subtaskIds = new ArrayList<>();
-    public Duration calculatedDuration = Duration.ZERO;
-    public LocalDateTime calculatedStartTime = null;
-    public LocalDateTime calculatedEndTime = null;
+    private ArrayList<Integer> subtaskIds;
+    private LocalDateTime endTime;
 
     //Основной конструктор
     public Epic(String name, String description) {
         super(name, description);
+        this.subtaskIds = new ArrayList<>(); //потенциально, неинициализированное поле может привести к проблемам
     }
 
     //Конструктор для обновления эпика
     public Epic(int id, String name, String description) {
         super(id, name, description);
+        this.subtaskIds = new ArrayList<>(); //потенциально, неинициализированное поле может привести к проблемам
     }
 
     //Гетеры и сеттеры
@@ -31,12 +30,12 @@ public class Epic extends Task {
         this.subtaskIds = subtaskIds;
     }
 
-    public LocalDateTime getCalculatedStartTime() {
-        return calculatedStartTime;
+    public LocalDateTime getEndTime() {
+        return endTime;
     }
 
-    public LocalDateTime getCalculatedEndTime() {
-        return calculatedEndTime;
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
     }
 
     //Методы работы с перечнем сабтасков
@@ -52,9 +51,32 @@ public class Epic extends Task {
         subtaskIds.clear();
     }
 
-    @Override
-    public Duration getDuration() {
-        return calculatedDuration;
+    // Методы добавленные в рамках реализации паттерна делегирование (я сейчас помру уже 34 часа проектирую)
+    public void updateStatus(List<Subtask> subtasks) {
+        if (subtasks == null || subtasks.isEmpty()) {
+            setStatus(Status.NEW);
+            return;
+        }
+
+        boolean allNew = true;
+        boolean allDone = true;
+
+        for (Subtask subtask : subtasks) {
+            if (subtask.getStatus() != Status.NEW) {
+                allNew = false;
+            }
+            if (subtask.getStatus() != Status.DONE) {
+                allDone = false;
+            }
+        }
+
+        if (allNew) {
+            setStatus(Status.NEW);
+        } else if (allDone) {
+            setStatus(Status.DONE);
+        } else {
+            setStatus(Status.IN_PROGRESS);
+        }
     }
 
     @Override

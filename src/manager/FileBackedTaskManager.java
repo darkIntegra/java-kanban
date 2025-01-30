@@ -7,6 +7,7 @@ import tasks.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.LocalDateTime;
 
 import utility.TaskConverter;
 
@@ -41,11 +42,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     //считывание данных из файла
-    private void taskAddFromFile(Task task) {
+    protected void taskAddFromFile(Task task) {
         int currentId = task.getId();
         if (id < currentId) {
             id = currentId;
         }
+        // Проверяем тип задачи и добавляем её в соответствующую коллекцию
         if (task.getType() == Type.EPIC) {
             epics.put(task.getId(), (Epic) task);
         } else if (task.getType() == Type.SUBTASK) {
@@ -59,6 +61,19 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             }
         } else {
             tasks.put(task.getId(), task);
+        }
+        // Проверяем пересечение времени и добавляем задачу в prioritizedTasks
+        LocalDateTime startTime = task.getStartTime();
+        LocalDateTime endTime = task.getEndTime();
+        if (startTime != null && endTime != null) {
+            if (isOverlappingWithAny(task)) {
+                System.out.println("Задача с ID " + task.getId() + " пересекается по времени и не будет " +
+                        "добавлена в prioritizedTasks.");
+            } else {
+                updatePrioritizedTasks(task);
+            }
+        } else {
+            prioritizedTasks.remove(task); // Удаляем задачу из prioritizedTasks, если время не задано
         }
     }
 
