@@ -152,10 +152,6 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
         // Рассчитываем ожидаемое время окончания
         LocalDateTime expectedEndTime = startTime.plus(duration);
 
-        // Выводим значения для отладки
-        System.out.println("Expected End Time: " + expectedEndTime);
-        System.out.println("Actual End Time: " + subtask.getEndTime());
-
         // Проверяем расчет времени окончания
         assertNotNull(subtask.getEndTime(), "Время окончания не должно быть null");
         assertEquals(expectedEndTime, subtask.getEndTime(), "Время окончания подзадачи рассчитано некорректно");

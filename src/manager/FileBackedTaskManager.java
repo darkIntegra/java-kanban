@@ -7,7 +7,6 @@ import tasks.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.time.LocalDateTime;
 
 import utility.TaskConverter;
 
@@ -41,41 +40,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    //считывание данных из файла
-    protected void taskAddFromFile(Task task) {
-        int currentId = task.getId();
-        if (id < currentId) {
-            id = currentId;
-        }
-        // Проверяем тип задачи и добавляем её в соответствующую коллекцию
-        if (task.getType() == Type.EPIC) {
-            epics.put(task.getId(), (Epic) task);
-        } else if (task.getType() == Type.SUBTASK) {
-            Subtask subtask = (Subtask) task;
-            int epicId = subtask.getEpicId();
-            Epic epic = epics.get(epicId);
-            if (epic != null) {
-                subtasks.put(subtask.getId(), subtask);
-            } else {
-                throw new ManagerLoadException("Ошибка при считывании подзадачи");
-            }
-        } else {
-            tasks.put(task.getId(), task);
-        }
-        // Проверяем пересечение времени и добавляем задачу в prioritizedTasks
-        LocalDateTime startTime = task.getStartTime();
-        LocalDateTime endTime = task.getEndTime();
-        if (startTime != null && endTime != null) {
-            if (isOverlappingWithAny(task)) {
-                System.out.println("Задача с ID " + task.getId() + " пересекается по времени и не будет " +
-                        "добавлена в prioritizedTasks.");
-            } else {
-                updatePrioritizedTasks(task);
-            }
-        } else {
-            prioritizedTasks.remove(task); // Удаляем задачу из prioritizedTasks, если время не задано
-        }
-    }
 
     //загрузка данных из файла
     public static FileBackedTaskManager loadFromFile(File file) {
@@ -85,7 +49,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             String line;
             while ((line = br.readLine()) != null && !line.isEmpty()) {
                 Task task = TaskConverter.taskFromString(line);
-                backedTaskManager.taskAddFromFile(task);
+                if (task.getType() == Type.TASK) {
+                    backedTaskManager.createTask(task);
+                } else if (task.getType() == Type.SUBTASK) {
+                    Subtask subtask = (Subtask) task;
+                    backedTaskManager.createSubtask(subtask, subtask.getEpicId());
+                } else if (task.getType() == Type.EPIC) {
+                    backedTaskManager.createEpic((Epic) task);
+                }
             }
         } catch (IOException e) {
             throw new ManagerLoadException("Ошибка чтения");

@@ -209,7 +209,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (subtask != null) {
             int epicId = subtask.getEpicId();
             epics.get(epicId).deleteSubtaskIds(id);
-            calculateFields(getEpicById(epicId));
+            calculateFields(epics.get(epicId));
             prioritizedTasks.remove(subtasks.get(id));
             subtasks.remove(id);
             history.remove(id);
@@ -243,7 +243,7 @@ public class InMemoryTaskManager implements TaskManager {
         return history.getHistory();
     }
 
-    public void updateEpicStatus(int epicId) {
+    protected void updateEpicStatus(int epicId) {
         Epic epic = epics.get(epicId);
         if (epic == null) {
             throw new IllegalArgumentException("Эпик с ID " + epicId + " не найден.");
@@ -258,7 +258,7 @@ public class InMemoryTaskManager implements TaskManager {
         epic.updateStatus(subtaskList); // Передаем список подзадач в метод updateStatus
     }
 
-    public void calculateFields(Epic epic) {
+    protected void calculateFields(Epic epic) {
         if (epic == null) {
             throw new IllegalArgumentException("Эпик для расчета полей не найден.");
         }
