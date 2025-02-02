@@ -51,7 +51,7 @@ public class Epic extends Task {
         subtaskIds.clear();
     }
 
-    // Методы добавленные в рамках реализации паттерна делегирование (я сейчас помру уже 34 часа проектирую)
+    // Методы добавленные в рамках реализации паттерна делегирование
     public void updateStatus(List<Subtask> subtasks) {
         if (subtasks == null || subtasks.isEmpty()) {
             setStatus(Status.NEW);
