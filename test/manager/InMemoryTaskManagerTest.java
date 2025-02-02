@@ -7,118 +7,31 @@ import tasks.Status;
 import tasks.Subtask;
 import tasks.Task;
 
-
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class InMemoryTaskManagerTest {
-
-    private InMemoryTaskManager taskManager;
+class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
+    @Override
+    protected InMemoryTaskManager createInstance() {
+        return new InMemoryTaskManager();
+    }
 
     @BeforeEach
     void setUp() {
-        taskManager = new InMemoryTaskManager(Managers.getDefaultHistory());
+        taskManager = new InMemoryTaskManager();
     }
 
-    @Test
-    void testCreateTask() {
-        Task task = new Task("Имя Таск1", "Описание задачи Таск1");
-        taskManager.createTask(task);
-
-        assertNotNull(taskManager.getTaskById(task.getId()), "Задача не была создана");
-    }
-
-    @Test
-    void testCreateEpic() {
-        Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
-        taskManager.createEpic(epic);
-
-        assertNotNull(taskManager.getEpicById(epic.getId()), "Эпик не был создан");
-    }
-
-    @Test
-    void testCreateSubtask() {
-        Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
-        taskManager.createEpic(epic);
-
-        Subtask subtask = new Subtask("Имя Сабтаск1", "Описание задачи Сабтаск1");
-        taskManager.createSubtask(subtask, epic.getId());
-
-        assertNotNull(taskManager.getSubtaskById(subtask.getId()), "Сабтаск не был создан");
-        assertTrue(epic.getSubtaskIds().contains(subtask.getId()), "Сабтаск не добавлен в эпик");
-    }
-
-    @Test
-    void testUpdateTask() {
-        Task task = new Task("Имя Таск1", "Описание задачи Таск1");
-        taskManager.createTask(task);
-
-        Task updatedTask = new Task(task.getId(), "Обновленное имя", "Обновленное описание",
-                Status.IN_PROGRESS);
-        taskManager.updateTask(updatedTask);
-
-        assertEquals(updatedTask.getName(), taskManager.getTaskById(task.getId()).getName(),
-                "Название задачи не обновилось");
-        assertEquals(updatedTask.getDescription(), taskManager.getTaskById(task.getId()).getDescription(),
-                "Описание задачи не обновилось");
-        assertEquals(updatedTask.getStatus(), taskManager.getTaskById(task.getId()).getStatus(),
-                "Статус задачи не обновился");
-    }
-
-    @Test
-    void testUpdateEpic() {
-        Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
-        taskManager.createEpic(epic);
-
-        Epic updatedEpic = new Epic(epic.getId(), "Обновленное имя", "Обновленное описание");
-        taskManager.updateEpic(updatedEpic);
-
-        assertEquals(updatedEpic.getName(), taskManager.getEpicById(epic.getId()).getName(),
-                "Название эпика не обновилось");
-        assertEquals(updatedEpic.getDescription(), taskManager.getEpicById(epic.getId()).getDescription(),
-                "Описание эпика не обновилось");
-    }
-
-    @Test
-    void testDeleteTask() {
-        Task task = new Task("Имя Таск1", "Описание задачи Таск1");
-        taskManager.createTask(task);
-
-        taskManager.deleteTask(task.getId());
-        assertNull(taskManager.getTaskById(task.getId()), "Задача не была удалена");
-    }
-
-    @Test
-    void testDeleteEpic() {
-        Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
-        taskManager.createEpic(epic);
-
-        taskManager.deleteEpic(epic.getId());
-        assertNull(taskManager.getEpicById(epic.getId()), "Эпик не был удален");
-    }
-
-    @Test
-    void testDeleteSubtask() {
-        Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
-        taskManager.createEpic(epic);
-
-        Subtask subtask = new Subtask("Имя Сабтаск1", "Описание задачи Сабтаск1");
-        taskManager.createSubtask(subtask, epic.getId());
-
-        taskManager.deleteSubtask(subtask.getId());
-        assertNull(taskManager.getSubtaskById(subtask.getId()), "Сабтаск не был удален");
-    }
-
+    // Тесты для получения задач, эпиков и подзадач
     @Test
     void testGetTasks() {
         Task task1 = new Task("Имя Таск1", "Описание задачи Таск1");
         Task task2 = new Task("Имя Таск2", "Описание задачи Таск2");
-
         taskManager.createTask(task1);
         taskManager.createTask(task2);
-
         Collection<Task> tasks = taskManager.getTasks();
         assertEquals(2, tasks.size(), "Количество задач не совпадает");
         assertTrue(tasks.contains(task1), "Задача 1 отсутствует в коллекции");
@@ -129,10 +42,8 @@ class InMemoryTaskManagerTest {
     void testGetEpics() {
         Epic epic1 = new Epic("Имя Эпик1", "Описание задачи Эпик1");
         Epic epic2 = new Epic("Имя Эпик2", "Описание задачи Эпик2");
-
         taskManager.createEpic(epic1);
         taskManager.createEpic(epic2);
-
         Collection<Epic> epics = taskManager.getEpics();
         assertEquals(2, epics.size(), "Количество эпиков не совпадает");
         assertTrue(epics.contains(epic1), "Эпик 1 отсутствует в коллекции");
@@ -143,13 +54,10 @@ class InMemoryTaskManagerTest {
     void testGetSubtasks() {
         Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
         taskManager.createEpic(epic);
-
         Subtask subtask1 = new Subtask("Имя Сабтаск1", "Описание задачи Сабтаск1");
         Subtask subtask2 = new Subtask("Имя Сабтаск2", "Описание задачи Сабтаск2");
-
         taskManager.createSubtask(subtask1, epic.getId());
         taskManager.createSubtask(subtask2, epic.getId());
-
         Collection<Subtask> subtasks = taskManager.getSubtasks();
         assertEquals(2, subtasks.size(), "Количество сабтасков не совпадает");
         assertTrue(subtasks.contains(subtask1), "Сабтаск 1 отсутствует в коллекции");
@@ -160,13 +68,10 @@ class InMemoryTaskManagerTest {
     void testGetSubtasksByEpicId() {
         Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
         taskManager.createEpic(epic);
-
         Subtask subtask1 = new Subtask("Имя Сабтаск1", "Описание задачи Сабтаск1");
         Subtask subtask2 = new Subtask("Имя Сабтаск2", "Описание задачи Сабтаск2");
-
         taskManager.createSubtask(subtask1, epic.getId());
         taskManager.createSubtask(subtask2, epic.getId());
-
         ArrayList<Subtask> subtasks = taskManager.getSubtasksByEpicId(epic.getId());
         assertEquals(2, subtasks.size(), "Количество сабтасков не совпадает");
         assertTrue(subtasks.contains(subtask1), "Сабтаск 1 отсутствует в коллекции");
@@ -177,16 +82,78 @@ class InMemoryTaskManagerTest {
     void testGetHistory() {
         Task task1 = new Task("Имя Таск1", "Описание задачи Таск1");
         Task task2 = new Task("Имя Таск2", "Описание задачи Таск2");
-
         taskManager.createTask(task1);
         taskManager.createTask(task2);
-
         taskManager.getTaskById(task1.getId());
         taskManager.getTaskById(task2.getId());
-
-        ArrayList<Task> history = (ArrayList<Task>) taskManager.getHistory();
+        ArrayList<Task> history = taskManager.getHistory();
         assertEquals(2, history.size(), "Количество задач в истории не совпадает");
         assertEquals(task1, history.get(0), "Первая задача в истории не совпадает");
         assertEquals(task2, history.get(1), "Вторая задача в истории не совпадает");
+    }
+
+    // Тесты для статуса эпика
+    @Test
+    void testEpicStatusAllSubtasksNew() {
+        Epic epic = new Epic("Эпик", "Описание эпика");
+        taskManager.createEpic(epic);
+        Subtask subtask1 = new Subtask("Подзадача 1", "Содержание 1", Status.NEW,
+                LocalDateTime.now(), Duration.ofMinutes(30));
+        Subtask subtask2 = new Subtask("Подзадача 2", "Содержание 2", Status.NEW,
+                LocalDateTime.now().plusHours(1), Duration.ofMinutes(60));
+        taskManager.createSubtask(subtask1, epic.getId());
+        taskManager.createSubtask(subtask2, epic.getId());
+        taskManager.updateEpicStatus(epic.getId());
+        assertEquals(Status.NEW, epic.getStatus(), "Статус эпика должен быть NEW");
+    }
+
+    @Test
+    void testEpicStatusAllSubtasksDone() {
+        Epic epic = new Epic("Эпик", "Описание эпика");
+        taskManager.createEpic(epic);
+        Subtask subtask1 = new Subtask("Подзадача 1", "Содержание 1", Status.DONE,
+                LocalDateTime.now(), Duration.ofMinutes(30));
+        Subtask subtask2 = new Subtask("Подзадача 2", "Содержание 2", Status.DONE,
+                LocalDateTime.now().plusHours(1), Duration.ofMinutes(60));
+        taskManager.createSubtask(subtask1, epic.getId());
+        taskManager.createSubtask(subtask2, epic.getId());
+        taskManager.updateEpicStatus(epic.getId());
+        assertEquals(Status.DONE, epic.getStatus(), "Статус эпика должен быть DONE");
+    }
+
+    @Test
+    void testEpicStatusMixedSubtasks() {
+        Epic epic = new Epic("Эпик", "Описание эпика");
+        taskManager.createEpic(epic);
+        Subtask subtask1 = new Subtask("Подзадача 1", "Содержание 1", Status.NEW,
+                LocalDateTime.now(), Duration.ofMinutes(30));
+        Subtask subtask2 = new Subtask("Подзадача 2", "Содержание 2", Status.DONE,
+                LocalDateTime.now().plusHours(1), Duration.ofMinutes(60));
+        taskManager.createSubtask(subtask1, epic.getId());
+        taskManager.createSubtask(subtask2, epic.getId());
+        taskManager.updateEpicStatus(epic.getId());
+        assertEquals(Status.IN_PROGRESS, epic.getStatus(), "Статус эпика должен быть IN_PROGRESS");
+    }
+
+    @Test
+    void testEpicStatusEmptySubtasks() {
+        Epic epic = new Epic("Эпик", "Описание эпика");
+        taskManager.createEpic(epic);
+        taskManager.updateEpicStatus(epic.getId());
+        assertEquals(Status.NEW, epic.getStatus(), "Статус эпика должен быть NEW");
+    }
+
+    @Test
+    public void testEndTimeCalculation() {
+        LocalDateTime startTime = LocalDateTime.of(2025, 1, 1, 10, 0);
+        Duration duration = Duration.ofHours(2);
+        Subtask subtask = new Subtask("Подзадача 1", "Содержание подзадачи", Status.NEW, startTime, duration);
+
+        // Рассчитываем ожидаемое время окончания
+        LocalDateTime expectedEndTime = startTime.plus(duration);
+
+        // Проверяем расчет времени окончания
+        assertNotNull(subtask.getEndTime(), "Время окончания не должно быть null");
+        assertEquals(expectedEndTime, subtask.getEndTime(), "Время окончания подзадачи рассчитано некорректно");
     }
 }

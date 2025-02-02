@@ -5,24 +5,25 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tasks.Epic;
-import tasks.Status;
 import tasks.Subtask;
 import tasks.Task;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class FileBackedTaskManagerTest {
-    private FileBackedTaskManager fileBackedTaskManager;
+class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
+
     private File tempFile;
 
     @BeforeEach
     void setUp() throws IOException {
         tempFile = Files.createTempFile("tasksFile", ".csv").toFile();
-        fileBackedTaskManager = new FileBackedTaskManager(tempFile);
+        taskManager = createInstance();
     }
 
     @AfterEach
@@ -30,93 +31,9 @@ class FileBackedTaskManagerTest {
         tempFile.deleteOnExit();
     }
 
-    @Test
-    void testCreateTask() {
-        Task task = new Task("Имя Таск1", "Описание задачи Таск1");
-        fileBackedTaskManager.createTask(task);
-
-        assertNotNull(fileBackedTaskManager.getTaskById(task.getId()), "Задача не была создана");
-    }
-
-    @Test
-    void testCreateEpic() {
-        Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
-        fileBackedTaskManager.createEpic(epic);
-
-        assertNotNull(fileBackedTaskManager.getEpicById(epic.getId()), "Эпик не был создан");
-    }
-
-    @Test
-    void testCreateSubtask() {
-        Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
-        fileBackedTaskManager.createEpic(epic);
-
-        Subtask subtask = new Subtask("Имя Сабтаск1", "Описание задачи Сабтаск1");
-        fileBackedTaskManager.createSubtask(subtask, epic.getId());
-
-        assertNotNull(fileBackedTaskManager.getSubtaskById(subtask.getId()), "Сабтаск не был создан");
-        assertTrue(epic.getSubtaskIds().contains(subtask.getId()), "Сабтаск не добавлен в эпик");
-    }
-
-    @Test
-    void testUpdateTask() {
-        Task task = new Task("Имя Таск1", "Описание задачи Таск1");
-        fileBackedTaskManager.createTask(task);
-
-        Task updatedTask = new Task(task.getId(), "Обновленное имя", "Обновленное описание",
-                Status.IN_PROGRESS);
-        fileBackedTaskManager.updateTask(updatedTask);
-
-        assertEquals(updatedTask.getName(), fileBackedTaskManager.getTaskById(task.getId()).getName(),
-                "Название задачи не обновилось");
-        assertEquals(updatedTask.getDescription(), fileBackedTaskManager.getTaskById(task.getId()).getDescription(),
-                "Описание задачи не обновилось");
-        assertEquals(updatedTask.getStatus(), fileBackedTaskManager.getTaskById(task.getId()).getStatus(),
-                "Статус задачи не обновился");
-    }
-
-    @Test
-    void testUpdateEpic() {
-        Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
-        fileBackedTaskManager.createEpic(epic);
-
-        Epic updatedEpic = new Epic(epic.getId(), "Обновленное имя", "Обновленное описание");
-        fileBackedTaskManager.updateEpic(updatedEpic);
-
-        assertEquals(updatedEpic.getName(), fileBackedTaskManager.getEpicById(epic.getId()).getName(),
-                "Название эпика не обновилось");
-        assertEquals(updatedEpic.getDescription(), fileBackedTaskManager.getEpicById(epic.getId()).getDescription(),
-                "Описание эпика не обновилось");
-    }
-
-    @Test
-    void testDeleteTask() {
-        Task task = new Task("Имя Таск1", "Описание задачи Таск1");
-        fileBackedTaskManager.createTask(task);
-
-        fileBackedTaskManager.deleteTask(task.getId());
-        assertNull(fileBackedTaskManager.getTaskById(task.getId()), "Задача не была удалена");
-    }
-
-    @Test
-    void testDeleteEpic() {
-        Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
-        fileBackedTaskManager.createEpic(epic);
-
-        fileBackedTaskManager.deleteEpic(epic.getId());
-        assertNull(fileBackedTaskManager.getEpicById(epic.getId()), "Эпик не был удален");
-    }
-
-    @Test
-    void testDeleteSubtask() {
-        Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
-        fileBackedTaskManager.createEpic(epic);
-
-        Subtask subtask = new Subtask("Имя Сабтаск1", "Описание задачи Сабтаск1");
-        fileBackedTaskManager.createSubtask(subtask, epic.getId());
-
-        fileBackedTaskManager.deleteSubtask(subtask.getId());
-        assertNull(fileBackedTaskManager.getSubtaskById(subtask.getId()), "Сабтаск не был удален");
+    @Override
+    protected FileBackedTaskManager createInstance() {
+        return new FileBackedTaskManager(tempFile);
     }
 
     @Test
@@ -127,9 +44,9 @@ class FileBackedTaskManagerTest {
         Subtask subtask1 = new Subtask("Имя Сабтаск1", "Описание задачи Сабтаск1");
 
         // Добавляем задачи
-        fileBackedTaskManager.createTask(task1);
-        fileBackedTaskManager.createEpic(epic1);
-        fileBackedTaskManager.createSubtask(subtask1, epic1.getId());
+        taskManager.createTask(task1);
+        taskManager.createEpic(epic1);
+        taskManager.createSubtask(subtask1, epic1.getId());
 
         // Загружаем из файла
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
@@ -145,5 +62,56 @@ class FileBackedTaskManagerTest {
                 "Название эпика не совпадает");
         assertEquals(subtask1.getName(), loadedManager.getSubtaskById(subtask1.getId()).getName(),
                 "Название сабтаска не совпадает");
+    }
+
+    @Test
+    void testTaskAddFromFile_AddsTaskToPrioritizedTasks() throws IOException {
+        // Создаем задачу и сохраняем её в файл через метод save()
+        Task task = new Task("Task 1", "Description 1");
+        task.setStartTime(LocalDateTime.of(2023, 10, 1, 9, 0));
+        task.setDuration(Duration.ofHours(2));
+
+        FileBackedTaskManager manager = new FileBackedTaskManager(tempFile);
+        manager.createTask(task);
+        manager.save();
+
+        // Загружаем задачу из файла
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
+
+        // Assert: Проверяем, что задача добавлена в prioritizedTasks
+        assertTrue(loadedManager.getPrioritizedTasks().contains(task));
+    }
+
+    @Test
+    void testLoadFromFile_LoadsTasksFromValidFile() throws IOException {
+        // Записываем задачи в файл через метод save()
+        Task task = new Task("Task 1", "Description 1");
+        task.setStartTime(LocalDateTime.of(2023, 10, 1, 9, 0));
+        task.setDuration(Duration.ofHours(2));
+
+        Epic epic = new Epic("Epic 1", "Epic Description");
+
+        FileBackedTaskManager manager = new FileBackedTaskManager(tempFile);
+        manager.createTask(task);
+        manager.createEpic(epic);
+        manager.save();
+
+        // Загружаем задачи из файла
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
+
+        // Проверяем, что задачи загружены корректно
+        assertEquals(1, loadedManager.getTasks().size());
+        assertEquals(1, loadedManager.getEpics().size());
+    }
+
+    @Test
+    void testLoadFromFile_HandlesEmptyFile() throws IOException {
+        // Создаем пустой файл
+        try (var writer = new java.io.FileWriter(tempFile)) {
+            writer.write("");
+        }
+
+        // Проверяем, что загрузка из пустого файла не вызывает ошибок
+        assertDoesNotThrow(() -> FileBackedTaskManager.loadFromFile(tempFile));
     }
 }

@@ -163,9 +163,9 @@ class InMemoryHistoryManagerTest {
 
     @Test
     void testRemoveLastTask() {
-        Task task1 = new Task(1, "Задача 1", "Описание задачи 1", null);
-        Task task2 = new Task(2, "Задача 2", "Описание задачи 2", null);
-        Task task3 = new Task(3, "Задача 3", "Описание задачи 3", null);
+        Task task1 = new Task(1, "Задача 1", "Описание задачи 1");
+        Task task2 = new Task(2, "Задача 2", "Описание задачи 2");
+        Task task3 = new Task(3, "Задача 3", "Описание задачи 3");
 
         historyManager.add(task1);
         historyManager.add(task2);
