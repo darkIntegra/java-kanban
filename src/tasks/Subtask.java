@@ -32,6 +32,12 @@ public class Subtask extends Task {
         this.epicId = epicId;
     }
 
+    //конструктор для тестирования сервера
+    public Subtask(String name, String description, LocalDateTime startTime, Duration duration, int parentId) {
+        super(name, description, startTime, duration);
+        this.epicId = parentId;
+    }
+
     public int getEpicId() {
         return epicId;
     }

@@ -1,5 +1,6 @@
 package tasks;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,14 @@ public class Epic extends Task {
     public Epic(int id, String name, String description) {
         super(id, name, description);
         this.subtaskIds = new ArrayList<>(); //потенциально, неинициализированное поле может привести к проблемам
+    }
+
+    //конструктор для тестирования сервера
+    public Epic(int id, String name, String description, Status status, LocalDateTime startTime, Duration duration,
+                LocalDateTime endTime) {
+        super(id, name, description, status, startTime, duration);
+        this.subtaskIds = new ArrayList<>();
+        this.endTime = endTime;
     }
 
     //Гетеры и сеттеры
