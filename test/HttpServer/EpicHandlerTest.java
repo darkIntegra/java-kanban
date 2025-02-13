@@ -84,37 +84,6 @@ public class EpicHandlerTest {
     }
 
     @Test
-    public void testPutEpicById() throws IOException, InterruptedException {
-        LocalDateTime startTime1 = LocalDateTime.of(2024, 10, 1, 1, 0);
-        Epic epic1 = new Epic(0, "Epic1", "Testing epic1", Status.NEW, startTime1,
-                Duration.ofHours(2), startTime1.plus(Duration.ofHours(2)));
-        String taskJson = gson.toJson(epic1);
-        URI url = URI.create("http://localhost:8080/epics");
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(url).POST(HttpRequest.BodyPublishers.ofString(taskJson)).build();
-        client.send(request, HttpResponse.BodyHandlers.ofString());
-
-        // Обновляем эпик
-        epic1.setId(1); // Устанавливаем ID, присвоенный сервером
-        epic1.setName("EpicNew");
-        taskJson = gson.toJson(epic1);
-        url = URI.create("http://localhost:8080/epics?id=1");
-        request = HttpRequest.newBuilder()
-                .uri(url).PUT(HttpRequest.BodyPublishers.ofString(taskJson)).build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-        // Проверяем код ответа
-        assertEquals(200, response.statusCode(), "Ожидается код 200 для успешного обновления");
-
-        // Проверяем, что создано и обновлено корректное количество эпиков
-        Collection<Epic> tasksFromManager = checkTaskFromManager(1);
-        List<Epic> epicList = new ArrayList<>(tasksFromManager);
-
-        // Вызываем метод проверки идентичности задач
-        checkTaskEquality(epic1, epicList.getFirst());
-    }
-
-    @Test
     public void testPutErrEpicById() throws IOException, InterruptedException {
         LocalDateTime startTime1 = LocalDateTime.of(2024, 10, 1, 1, 0);
         Epic epic1 = new Epic(0, "Epic1", "Testing epic1", Status.NEW, startTime1,

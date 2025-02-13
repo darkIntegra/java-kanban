@@ -67,17 +67,17 @@ public class InMemoryTaskManager implements TaskManager {
 
     // c. Получение по идентификатору.
     @Override
-    public Task getTaskById(int id) throws NotFoundException {
-        if (!tasks.containsKey(id)) {
+    public Task getTaskById(int id) {
+        Task task = tasks.get(id);
+        if (task == null) {
             throw new NotFoundException("Задача с ID " + id + " не найдена.");
         }
-        Task task = tasks.get(id);
         history.add(task); // Добавляем задачу в историю
         return task;
     }
 
     @Override
-    public Epic getEpicById(int id) throws NotFoundException {
+    public Epic getEpicById(int id) {
         if (!epics.containsKey(id)) {
             throw new NotFoundException("Эпик с ID " + id + " не найден.");
         }
@@ -87,7 +87,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Subtask getSubtaskById(int id) throws NotFoundException {
+    public Subtask getSubtaskById(int id) {
         if (!subtasks.containsKey(id)) {
             throw new NotFoundException("Подзадача с ID " + id + " не найдена.");
         }
@@ -173,13 +173,12 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateEpic(Epic epic) {
-        if (epics.containsKey(epic.getId())) {
-            epic.setSubtaskIds(epics.get(epic.getId()).getSubtaskIds());
-            epics.put(epic.getId(), epic);
-            calculateFields(epic);
-        } else {
-            System.out.println("Эпика с ID " + epic.getId() + " не существует");
+        if (!epics.containsKey(epic.getId())) {
+            throw new NotFoundException("Эпика с ID " + epic.getId() + " не существует");
         }
+        epic.setSubtaskIds(epics.get(epic.getId()).getSubtaskIds());
+        epics.put(epic.getId(), epic);
+        calculateFields(epic);
     }
 
     // f. Удаление по идентификатору.

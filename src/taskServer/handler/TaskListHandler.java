@@ -1,27 +1,16 @@
 package taskServer.handler;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParseException;
 import com.sun.net.httpserver.HttpExchange;
-import exception.InvalidTaskIdException;
 import exception.NotFoundException;
-import taskServer.typeAdapter.DurationAdapter;
-import taskServer.typeAdapter.LocalDateTimeAdapter;
 import manager.TaskManager;
-import tasks.Task;
+import taskServer.HttpTaskServer;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.List;
 
 public abstract class TaskListHandler extends BaseHttpHandler {
     protected final TaskManager taskManager;
-    private final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(Duration.class, new DurationAdapter())
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-            .create();
+    protected final Gson gson = HttpTaskServer.getGson();
 
     public TaskListHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
@@ -40,27 +29,14 @@ public abstract class TaskListHandler extends BaseHttpHandler {
         } catch (NotFoundException e) {
             sendText(exchange, e.getMessage(), 404);
         } catch (Exception e) {
-            sendText(exchange, "500 Internal Server Error", 500);
+            sendText(exchange, "Internal Server Error", 500);
         } finally {
             exchange.close();
         }
     }
 
-    // Абстрактный метод, который должен быть реализован в подклассах
-    protected abstract List<Task> getTaskList();
-
-    // Логика обработки GET-запроса
-    protected void handleGet(String response, HttpExchange exchange) throws IOException {
-        try {
-            List<Task> tasks = getTaskList();
-            response = gson.toJson(tasks);
-            sendText(exchange, response, 200);
-        } catch (JsonParseException | InvalidTaskIdException | IllegalArgumentException e) {
-            handleErrorResponse(e, "Ошибка в запросе", 400, exchange);
-        } catch (NotFoundException e) {
-            handleErrorResponse(e, "Задачи не найдены", 404, exchange);
-        }
-    }
+    // Логика обработки GET-запросов остаётся абстрактной
+    protected abstract void handleGet(String response, HttpExchange exchange) throws IOException;
 
     // Логика обработки ошибок
     protected void handleErrorResponse(Exception e, String response, int statusCode, HttpExchange exchange)
@@ -69,7 +45,7 @@ public abstract class TaskListHandler extends BaseHttpHandler {
         sendText(exchange, response, statusCode);
     }
 
-    // Логика обработки не поддерживаемых методов
+    // Логика обработки неподдерживаемых методов
     protected void sendUnsupportedMethod(String response, HttpExchange exchange) throws IOException {
         response = "Метод не поддерживается.";
         sendText(exchange, response, 405);

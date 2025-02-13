@@ -23,28 +23,28 @@ public class EpicHandler extends TaskHandler {
         super(taskManager);
     }
 
+
+
     @Override
     protected void handleGet(String query, HttpExchange exchange) throws IOException {
         try {
-            StringBuilder response = new StringBuilder();
+            String jsonResponse;
 
             if (query == null || query.isEmpty()) {
                 Collection<Epic> allTasks = taskManager.getEpics();
-                for (Epic task : allTasks) {
-                    response.append(task.toString()).append("\n");
-                }
+                jsonResponse = gson.toJson(allTasks);
             } else {
                 int taskId = getTaskIdFromRequest(query);
                 Epic task = taskManager.getEpicById(taskId);
 
                 if (query.contains("/subtasks")) {
                     List<Integer> subtaskIds = task.getSubtaskIds();
-                    response.append("Subtask IDs: ").append(subtaskIds.toString()).append("\n");
+                    jsonResponse = gson.toJson(subtaskIds);
                 } else {
-                    response.append(task.toString());
+                    jsonResponse = gson.toJson(task);
                 }
             }
-            sendText(exchange, response.toString(), 200);
+            sendText(exchange, jsonResponse, 200);
         } catch (JsonParseException | InvalidTaskIdException | IllegalArgumentException | URISyntaxException e) {
             handleErrorResponse(e, 400, exchange);
         } catch (NotFoundException e) {
@@ -56,44 +56,38 @@ public class EpicHandler extends TaskHandler {
     @Override
     protected void handlePost(HttpExchange exchange) throws IOException {
         try {
-            Epic newEpic = readTaskFromRequest(exchange);
+            final Epic epic = readTaskFromRequest(exchange);
+            final Integer id = epic.getId();
 
-            // Проверяем, передается ли ID в JSON
-            if (newEpic.getId() == -1) {  // -1 означает, что ID должен быть сгенерирован
-                taskManager.createEpic(newEpic); // Создаем новую задачу через TaskManager
-                String response = "Задача успешно добавлена.";
-                sendText(exchange, response, 201); // Отправляем код 201 Created
+            if (id != null && id > 0) {
+                // Обновление существующего эпика
+                updateExistingEpic(epic, exchange);
             } else {
-                // Если ID не равен -1, возвращаем ошибку
-                throw new BadRequestException("Ошибка: нельзя отправлять задачу с установленным ID!");
+                // Создание нового эпика
+                createNewEpic(epic, exchange);
             }
         } catch (JsonParseException | BadRequestException e) {
             handleErrorResponse(e, 400, exchange); // Некорректный запрос
+        } catch (NotFoundException e) {
+            handleErrorResponse(e, 404, exchange); // Задача не найдена
         } catch (ManagerValidatePriorityException e) {
             handleErrorResponse(e, 406, exchange); // Недопустимые данные
         }
     }
 
-    @Override
-    protected void handlePut(String query, HttpExchange exchange) throws IOException {
+    private void createNewEpic(Epic epic, HttpExchange exchange) throws IOException {
+        // Устанавливаем ID как null или -1 для создания новой задачи
+        epic.setId(0);
+        taskManager.createEpic(epic);
+        sendText(exchange, "Эпик успешно создан.", 201);
+    }
+
+    private void updateExistingEpic(Epic epic, HttpExchange exchange) throws IOException {
         try {
-            int taskId = getTaskIdFromRequest(query);
-
-            // Проверяем, существует ли эпик с указанным ID
-            if (!taskManager.containsEpic(taskId)) {
-                sendText(exchange, "Эпик с ID " + taskId + " не найден.", 404);
-                return;
-            }
-
-            Epic updatedEpic = readTaskFromRequest(exchange);
-            updatedEpic.setId(taskId);
-            taskManager.updateEpic(updatedEpic);
-            sendText(exchange, "Эпик с ID " + taskId + " успешно обновлён.", 200); // Исправлен код ответа на 200
-        } catch (JsonParseException | InvalidTaskIdException | IllegalArgumentException | URISyntaxException
-                 | BadRequestException e) {
-            handleErrorResponse(e, 400, exchange);
+            taskManager.updateEpic(epic);
+            sendText(exchange, "Эпик с ID " + epic.getId() + " успешно обновлён.", 200);
         } catch (NotFoundException e) {
-            handleErrorResponse(e, 404, exchange);
+            throw new NotFoundException("Эпик с ID " + epic.getId() + " не найден.");
         }
     }
 
