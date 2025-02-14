@@ -1,5 +1,7 @@
 package manager;
 
+import exception.ManagerValidatePriorityException;
+import exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tasks.Epic;
@@ -82,16 +84,34 @@ abstract class TaskManagerTest<T extends TaskManager> {
     void testDeleteTask() {
         Task task = new Task("Имя Таск1", "Описание задачи Таск1");
         taskManager.createTask(task);
+
+        // Удаляем задачу
         taskManager.deleteTask(task.getId());
-        assertNull(taskManager.getTaskById(task.getId()), "Задача не была удалена");
+
+        // Проверяем, что при попытке получить задачу выбрасывается NotFoundException
+        Exception exception = assertThrows(NotFoundException.class, () -> {
+            taskManager.getTaskById(task.getId());
+        });
+
+        // Проверяем сообщение исключения
+        assertEquals("Задача с ID " + task.getId() + " не найдена.", exception.getMessage());
     }
 
     @Test
     void testDeleteEpic() {
         Epic epic = new Epic("Имя Эпик1", "Описание задачи Эпик1");
         taskManager.createEpic(epic);
+
+        // Удаляем эпик
         taskManager.deleteEpic(epic.getId());
-        assertNull(taskManager.getEpicById(epic.getId()), "Эпик не был удален");
+
+        // Проверяем, что при попытке получить эпик выбрасывается NotFoundException
+        Exception exception = assertThrows(NotFoundException.class, () -> {
+            taskManager.getEpicById(epic.getId());
+        });
+
+        // Проверяем сообщение исключения
+        assertEquals("Эпик с ID " + epic.getId() + " не найден.", exception.getMessage());
     }
 
     @Test
@@ -100,8 +120,17 @@ abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.createEpic(epic);
         Subtask subtask = new Subtask("Имя Сабтаск1", "Описание задачи Сабтаск1");
         taskManager.createSubtask(subtask, epic.getId());
+
+        // Удаляем подзадачу
         taskManager.deleteSubtask(subtask.getId());
-        assertNull(taskManager.getSubtaskById(subtask.getId()), "Сабтаск не был удален");
+
+        // Проверяем, что при попытке получить подзадачу выбрасывается NotFoundException
+        Exception exception = assertThrows(NotFoundException.class, () -> {
+            taskManager.getSubtaskById(subtask.getId());
+        });
+
+        // Проверяем сообщение исключения
+        assertEquals("Подзадача с ID " + subtask.getId() + " не найдена.", exception.getMessage());
     }
 
     // Тест на пересечение задач
@@ -124,7 +153,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.createTask(task1);
 
         // Попытка добавить вторую задачу должна вызвать исключение из-за пересечения временных интервалов
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> taskManager.createTask(task2));
+        Exception exception = assertThrows(ManagerValidatePriorityException.class, () -> taskManager.createTask(task2));
 
         String expectedMessage = "Задача пересекается по времени с другой задачей.";
         String actualMessage = exception.getMessage();
@@ -148,8 +177,15 @@ abstract class TaskManagerTest<T extends TaskManager> {
     void testHistory() {
         Task task = new Task("Task", "Description");
         taskManager.createTask(task);
+
+        // Проверяем, что задача существует перед обращением к ней
+        assertNotNull(taskManager.getTaskById(task.getId()), "Задача должна существовать");
+
+        // Первое обращение к задаче
         taskManager.getTaskById(task.getId());
         assertEquals(1, taskManager.getHistory().size(), "История должна содержать одну задачу");
+
+        // Второе обращение к той же задаче
         taskManager.getTaskById(task.getId());
         assertEquals(1, taskManager.getHistory().size(), "Повторное обращение не должно " +
                 "дублировать задачу");

@@ -48,6 +48,18 @@ public class Task {
         this(0, name, description, status, startTime, duration);
     }
 
+    //конструктор для тестирования сервера
+    public Task(String name, String description, Duration duration, LocalDateTime startTime) {
+        this(0, name, description, Status.NEW, startTime, duration);
+    }
+
+    public Task(String name, String description, LocalDateTime startTime, Duration duration) {
+        this.name = name;
+        this.description = description;
+        this.duration = duration;
+        this.startTime = startTime;
+    }
+
     //Гетеры и сетеры
     public int getId() {
         return id;

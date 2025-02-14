@@ -59,4 +59,10 @@ public interface TaskManager {
 
     // Получение списка задач отсортированных по времени
     List<Task> getPrioritizedTasks();
+
+    boolean containsTask(int id);
+
+    boolean containsSubtask(int id);
+
+    boolean containsEpic(int id);
 }
